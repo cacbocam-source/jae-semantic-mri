@@ -393,6 +393,32 @@ Git Snapshot:
 
 **Phase 1 Infrastructure Build: COMPLETE**
 
+## Phase 1.01 — Workspace Health Diagnostic
+
+Date: 2026-03-10
+
+Changes:
+- added scripts/doctor.sh
+- implemented filesystem, Python, dependency, and MPS environment checks
+- established preflight health verification for the workspace
+
+## Phase 1.01.1 — Workspace Health Diagnostic
+
+Date: 2026-03-10
+
+Changes:
+- added scripts/doctor.sh
+- implemented filesystem, Python runtime, disk capacity, dependency, and MPS checks
+- validated workspace readiness before pipeline execution
+
+Verification:
+- doctor.sh returned SYSTEM STATUS: READY
+- Pass: 17
+- Warn: 0
+- Fail: 0
+
+Git Commit:
+- 1deeb88
 ## Phase 2 — Corpus Ingestion
 
 Date: 2026-03-12
