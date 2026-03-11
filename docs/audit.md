@@ -392,3 +392,11 @@ Git Snapshot:
 # Status
 
 **Phase 1 Infrastructure Build: COMPLETE**
+
+## Phase 2 — Corpus Ingestion
+
+Date: 2026-03-12
+
+Changes:
+- implemented ingestion pipeline
+- added manifest generation

@@ -1,3 +1,3 @@
 def run() -> int:
-    print("[INGEST] Placeholder orchestrator initialized.")
+    print("[INGEST] Attempting to test file tree structure.")
     return 0
