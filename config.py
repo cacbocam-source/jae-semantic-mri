@@ -20,6 +20,9 @@ BIN_UTILS = BIN_DIR / "s04_utils"
 
 # Data Silos
 RAW_DIR = BASE_DIR / "data" / "raw"
+RAW_ROUTE_MODERN = RAW_DIR / "Route_A_Modern"
+RAW_ROUTE_LEGACY = RAW_DIR / "Route_B_Legacy"
+
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
 MANIFEST_DIR = BASE_DIR / "data" / "manifests"
 LOG_DIR = BASE_DIR / "logs"
@@ -33,6 +36,13 @@ MODEL_ID = "nomic-ai/nomic-embed-text-v1.5"
 TOKEN_LIMIT = 8192
 MAX_WORKERS = 8
 
+# --- PHASE 2 EXTRACTION SETTINGS ---
+MIN_DIGITAL_TEXT_LENGTH = 500
+OCR_DPI = 300
+TESSERACT_LANG = "eng"
+STOP_SECTION_PATTERN = (
+    r"\nReferences|\nLiterature Cited|\nAcknowledgements|\nFunding"
+)
 # --- DATA ARCHITECTURE ---
 EPOCH_STEP = 5
 START_YEAR = 1960
@@ -45,8 +55,17 @@ if TOKEN_LIMIT <= 0:
 if MAX_WORKERS <= 0:
     raise ValueError("MAX_WORKERS must be positive.")
 
+if MIN_DIGITAL_TEXT_LENGTH <= 0:
+    raise ValueError("MIN_DIGITAL_TEXT_LENGTH must be positive.")
+
+if OCR_DPI <= 0:
+    raise ValueError("OCR_DPI must be positive.")
+
 if EPOCH_STEP <= 0:
     raise ValueError("EPOCH_STEP must be positive.")
+
+if START_YEAR < 1900:
+    raise ValueError("START_YEAR appears invalid for this corpus.")
 
 if START_YEAR > END_YEAR:
     raise ValueError("START_YEAR cannot exceed END_YEAR.")
@@ -58,10 +77,41 @@ REQUIRED_DIRS = (
     BIN_ANALYSIS,
     BIN_UTILS,
     RAW_DIR,
+    RAW_ROUTE_MODERN,
+    RAW_ROUTE_LEGACY,
     PROCESSED_DIR,
     MANIFEST_DIR,
     LOG_DIR,
 )
+__all__ = [
+    "PROJECT_NAME",
+    "PROJECT_TITLE",
+    "BASE_DIR",
+    "BIN_DIR",
+    "BIN_INGEST",
+    "BIN_PROCESS",
+    "BIN_ANALYSIS",
+    "BIN_UTILS",
+    "RAW_DIR",
+    "RAW_ROUTE_MODERN",
+    "RAW_ROUTE_LEGACY",
+    "PROCESSED_DIR",
+    "MANIFEST_DIR",
+    "LOG_DIR",
+    "MASTER_LEDGER",
+    "LOG_FILE",
+    "DEVICE",
+    "MODEL_ID",
+    "TOKEN_LIMIT",
+    "MAX_WORKERS",
+    "MIN_DIGITAL_TEXT_LENGTH",
+    "OCR_DPI",
+    "TESSERACT_LANG",
+    "STOP_SECTION_PATTERN",
+    "EPOCH_STEP",
+    "START_YEAR",
+    "END_YEAR",
+]
 
 for directory in REQUIRED_DIRS:
     directory.mkdir(parents=True, exist_ok=True)

@@ -419,6 +419,25 @@ Verification:
 
 Git Commit:
 - 1deeb88
+
+## Phase 1.02 — Main Orchestrator Refactor for Optional Diagnostics
+
+Date: 2026-03-10
+
+Changes:
+- refactored main.py to support optional full workspace diagnostics
+- retained startup_check.sh as the mandatory filesystem safety gate
+- added --doctor / --full-check flag to invoke scripts/doctor.sh when requested
+
+Operational effect:
+- normal phase runs execute only the startup safety check
+- diagnostic phase runs can invoke full workspace health validation
+
+Verification:
+- python3 main.py --phase ingest
+- python3 main.py --phase process --doctor
+- python3 main.py --phase analyze --full-check
+
 ## Phase 2 — Corpus Ingestion
 
 Date: 2026-03-12
@@ -428,3 +447,111 @@ Changes:
 - added manifest generation
 ## Change — 2026-03-10
 Implemented ingestion pipeline
+
+Phase 2 — OCR Pipeline Debugging and Extraction Architecture Update
+Date: 2026-03-14
+Phase: Phase 2 – Document Extraction Reliability
+Status: In Progress
+Objective
+Phase 2 focuses on building a reliable document extraction pipeline capable of processing the full historical corpus of agricultural education literature.
+The corpus contains two distinct document classes:
+Digital PDFs
+Scanned archival PDFs
+Both must be processed into clean corpus-ready text suitable for semantic embedding and analysis.
+Corpus Test Documents
+Two documents were used to validate the extraction pipeline.
+Modern Digital PDF
+Journal of Agricultural Education (2026)
+Characteristics:
+Embedded text layer
+Extractable via PyMuPDF
+No OCR required
+Historical Scan
+Journal of the American Association of Teacher Educators in Agriculture (1960)
+Characteristics:
+Image-only pages
+No embedded text layer
+Requires OCR extraction
+Issues Discovered During Pipeline Audit
+Variable Reference Error
+Original OCR loop contained a variable mismatch.
+Original code:
+page_content = pytesseract.image_to_string(image)
+ocr_text += page_text
+Issue:
+page_text was never defined.
+Corrected code:
+page_content = pytesseract.image_to_string(image)
+ocr_text += page_content
+This bug would cause the OCR pipeline to fail during runtime.
+OCR Dependency Assumption
+The original pipeline assumed the presence of the following system dependencies:
+Tesseract OCR
+Poppler (for pdf2image)
+If either dependency is missing, the pipeline will fail.
+Future pipeline versions must implement:
+dependency detection
+graceful fallback logic
+Inefficient Extraction Strategy
+The original workflow forced OCR for all documents.
+Original architecture:
+PDF → OCR → Clean text
+This approach is inefficient for modern PDFs that already contain embedded text.
+Updated extraction strategy:
+PDF Input
+   │
+   ├─ Attempt PyMuPDF extraction
+   │
+   ├─ If extracted text length > threshold
+   │        └─ Use digital text
+   │
+   └─ Else
+          └─ Run OCR pipeline
+This architecture significantly reduces processing time for modern documents.
+Hard-Stop Text Cleaning Update
+The pipeline includes a reference-section removal step to prevent citation lists from contaminating the semantic corpus.
+Original stop markers:
+References
+Literature Cited
+Expanded stop markers:
+References
+Literature Cited
+Acknowledgements
+Funding
+This ensures the embedding corpus contains only the article body.
+Phase 2 Baseline OCR Engine
+Corrected OCR function:
+def perform_ocr(pdf_path):
+
+    print(f"[*] Starting OCR Engine for: {pdf_path}")
+
+    images = convert_from_path(pdf_path, dpi=300)
+
+    ocr_text = ""
+
+    for i, image in enumerate(images):
+
+        print(f"Processing page {i+1}/{len(images)}")
+
+        page_content = pytesseract.image_to_string(image)
+
+        ocr_text += page_content
+
+    return ocr_text
+This implementation serves as the baseline for further optimization.
+Planned Extraction Engine
+The final Phase 2 system will implement:
+smart_extract_pdf(pdf_path)
+Responsibilities:
+detect digital vs scanned PDFs
+route to the correct extraction method
+perform OCR only when necessary
+apply reference-stop cleaning
+output standardized corpus-ready text
+Phase 2 Progress Status
+Component	Status
+OCR Engine Bug Fix	Completed
+Reference Cleaning	Updated
+Corpus Test Validation	Completed
+Smart Extraction Engine	Pending
+Batch Corpus Processor	Pending
