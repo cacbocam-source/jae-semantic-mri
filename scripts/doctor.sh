@@ -15,7 +15,7 @@ pass() {
 }
 
 warn() {
-    printf '[WARN] %s\n' "$1"
+    printf '[WARN_COUNT] %s\n' "$1"
     WARN_COUNT=$((WARN_COUNT + 1))
 }
 
@@ -72,7 +72,8 @@ for dir in \
     "$PROJECT_ROOT/data" \
     "$PROJECT_ROOT/logs" \
     "$PROJECT_ROOT/scripts" \
-    "$PROJECT_ROOT/docs"
+    "$PROJECT_ROOT/docs" \
+    "$PROJECT_ROOT/manuscript"
 do
     if [[ -d "$dir" ]]; then
         pass "Directory present: $dir"
@@ -103,7 +104,7 @@ else
     fail "Unable to read disk usage for NVMe"
 fi
 
-section "Python Package Checks"
+section "Core Python Package Checks"
 
 python3 - <<'PY'
 import importlib.util
@@ -132,6 +133,51 @@ if [[ "$PACKAGE_STATUS" -eq 0 ]]; then
     pass "Core Python package check passed"
 else
     fail "Core Python package check failed"
+fi
+
+section "Phase 2 Extraction Package Checks"
+
+python3 - <<'PY'
+import importlib.util
+import sys
+
+packages = [
+    "fitz",
+    "pytesseract",
+    "pdf2image",
+]
+
+failed = False
+for name in packages:
+    spec = importlib.util.find_spec(name)
+    if spec is None:
+        print(f"[FAIL] Extraction package missing: {name}")
+        failed = True
+    else:
+        print(f"[PASS] Extraction package available: {name}")
+
+sys.exit(1 if failed else 0)
+PY
+EXTRACT_STATUS=$?
+
+if [[ "$EXTRACT_STATUS" -eq 0 ]]; then
+    pass "Phase 2 extraction package check passed"
+else
+    fail "Phase 2 extraction package check failed"
+fi
+
+section "OCR System Dependency Checks"
+
+if command -v tesseract >/dev/null 2>&1; then
+    pass "tesseract found: $(command -v tesseract)"
+else
+    fail "tesseract not found in PATH"
+fi
+
+if command -v pdftoppm >/dev/null 2>&1; then
+    pass "pdftoppm found: $(command -v pdftoppm)"
+else
+    fail "pdftoppm not found in PATH"
 fi
 
 section "MPS / Torch Check"
@@ -181,6 +227,12 @@ if [[ -f "$PROJECT_ROOT/main.py" ]]; then
     pass "main.py present"
 else
     fail "main.py missing"
+fi
+
+if [[ -f "$PROJECT_ROOT/data/manifests/jae_master_ledger.csv" ]]; then
+    pass "jae_master_ledger.csv present"
+else
+    warn "jae_master_ledger.csv not yet present"
 fi
 
 section "Summary"

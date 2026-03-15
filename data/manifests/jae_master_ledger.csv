@@ -1,0 +1,3 @@
+doc_id,source_filename,source_pdf_path,route,processed_text_path,extraction_method,page_count,raw_text_length,clean_text_length,status,processed_timestamp
+jae_90944b221a70,2026.pdf,/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/raw/Route_A_Modern/2026.pdf,Route_A_Modern,/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/processed/Route_A_Modern/2026.txt,fitz,18,55599,43498,processed,2026-03-14T19:35:31+00:00
+jae_e53ec5d6271f,Vol1_1.pdf,/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/raw/Route_B_Legacy/Vol1_1.pdf,Route_B_Legacy,/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/processed/Route_B_Legacy/Vol1_1.txt,ocr,9,31782,1943,processed,2026-03-14T19:35:55+00:00

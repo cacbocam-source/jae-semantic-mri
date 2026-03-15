@@ -9,7 +9,14 @@ echo "-----------------------------------------"
 echo "Semantic MRI Pipeline Startup Check"
 echo "-----------------------------------------"
 
-# 1. Check NVMe mount
+# Run research compliance guardrail
+if [[ ! -x "$PROJECT_ROOT/scripts/compliance_check.sh" ]]; then
+    echo "ERROR: compliance_check.sh missing or not executable."
+    exit 1
+fi
+"$PROJECT_ROOT/scripts/compliance_check.sh"
+
+# Check NVMe mount
 if [[ ! -d "$NVME_MOUNT" ]]; then
     echo "ERROR: NVMe drive Clemons_Data is not mounted."
     exit 1
@@ -17,7 +24,7 @@ fi
 
 echo "✓ NVMe mount detected"
 
-# 2. Check project root exists
+# Check project root exists
 if [[ ! -e "$PROJECT_ROOT" ]]; then
     echo "ERROR: Project anchor path missing:"
     echo "$PROJECT_ROOT"
@@ -26,7 +33,7 @@ fi
 
 echo "✓ Anchor path exists"
 
-# 3. Verify symlink
+# Verify symlink
 if [[ ! -L "$PROJECT_ROOT" ]]; then
     echo "ERROR: Project root is not a symlink."
     exit 1
@@ -34,7 +41,7 @@ fi
 
 echo "✓ Anchor is a symlink"
 
-# 4. Verify correct symlink target
+# Verify correct symlink target
 TARGET=$(readlink "$PROJECT_ROOT")
 
 if [[ "$TARGET" != "$EXPECTED_TARGET" ]]; then
@@ -46,17 +53,18 @@ fi
 
 echo "✓ Symlink target verified"
 
-# 5. Verify critical directories
+# Verify critical directories
 REQUIRED_DIRS=(
     "$PROJECT_ROOT/bins"
     "$PROJECT_ROOT/data"
     "$PROJECT_ROOT/logs"
+    "$PROJECT_ROOT/docs"
+    "$PROJECT_ROOT/manuscript"
 )
 
 for dir in "${REQUIRED_DIRS[@]}"; do
     if [[ ! -d "$dir" ]]; then
-        echo "ERROR: Missing required directory:"
-        echo "$dir"
+        echo "ERROR: Missing required directory: $dir"
         exit 1
     fi
 done

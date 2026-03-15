@@ -1,138 +1,88 @@
-# Computational Infrastructure Audit
+Computational Infrastructure Audit
 
-**Project:** A Semantic MRI of Agricultural Education
-**Author:** Christopher Clemons
-**Build Date:** 2026-03-10
+Project: A Semantic MRI of Agricultural Education
+Author: Christopher Clemons
+Initial Build Date: 2026-03-10
 
----
-
-# 1. System Metadata
-
-## Hardware
+1. System Metadata
+Hardware
 
 CPU: Apple M3 Max
 Memory: 64GB Unified Memory
 
-## Storage
+Storage
 
 Primary Storage: External NVMe
-Volume Name: `Clemons_Data`
+Volume Name:
 
-Physical Project Root:
+Clemons_Data
 
-```
+Physical Project Root
+
 /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
 
-Logical Anchor:
+Logical Anchor
 
-```
 ~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
+Python Environment
 
----
+Python Version
 
-## Python Environment
-
-Python Version:
-
-```
 python3 --version
-```
 
-Example output:
+Compute Device
 
-```
-Python 3.x.x
-```
-
-Compute Device:
-
-```
 DEVICE = "mps"
-```
 
-Metal Performance Shaders (Apple Silicon GPU acceleration)
+Apple Metal Performance Shaders GPU acceleration.
 
-Embedding Model:
+Embedding Model
 
-```
 nomic-ai/nomic-embed-text-v1.5
-```
 
-Context Window:
+Context Window
 
-```
 TOKEN_LIMIT = 8192
-```
 
-Worker Pool:
+Worker Pool
 
-```
 MAX_WORKERS = 8
-```
 
-Workers were intentionally throttled from 14 to 8 to prevent unified-memory pressure and SSD swap behavior on a 64GB Apple Silicon system.
+Workers were intentionally reduced from 14 to 8 to prevent unified-memory pressure on a 64GB Apple Silicon architecture.
 
----
+2. Infrastructure Architecture
+Storage Model
 
-# 2. Infrastructure Architecture
+The system uses an NVMe-backed storage architecture combined with a symbolic anchor path.
 
-## Storage Model
+Benefits:
 
-The project uses an **NVMe-backed storage architecture** with a symbolic anchor path.
+• large corpus storage on high-speed external NVMe
+• stable OS-level project path
+• reproducible compute paths
 
-This design ensures:
-
-* large datasets remain on external high-speed storage
-* the project root remains stable from the OS perspective
-* compute nodes can reference a consistent path
-
-### Physical Storage Path
-
-```
+Physical Storage
 /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
-### Logical Anchor Path
-
-```
+Logical Anchor
 ~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
 
-The logical path is implemented as a **symbolic link** pointing to the NVMe storage root.
+Verification command
 
-Verification command:
-
-```
 readlink ~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
 
-Expected output:
+Expected output
 
-```
 /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
+3. Directory Architecture
 
----
+The system follows a modular service-bin pipeline architecture.
 
-# 3. Directory Architecture
-
-The project follows a modular **service-bin architecture** commonly used in computational research pipelines.
-
-```
 JAE_Legacy_Audit
 │
 ├── bins
 │   ├── s01_ingest
-│   │   └── orchestrator.py
-│   │
 │   ├── s02_processor
-│   │   └── orchestrator.py
-│   │
 │   ├── s03_analysis
-│   │   └── orchestrator.py
-│   │
 │   └── s04_utils
 │
 ├── data
@@ -145,413 +95,449 @@ JAE_Legacy_Audit
 │
 ├── logs
 ├── scripts
-│   └── startup_check.sh
 │
 ├── config.py
 ├── main.py
-└── audit.md
-```
-
----
-
-# 4. Build Log
-
-This section records the chronological infrastructure build steps.
-
----
-
-## Step 1 — NVMe Project Root Creation
-
-Command:
-
-```
+└── docs/audit.md
+4. Phase 1 — Infrastructure Build
+Step 1 — NVMe Project Root
 mkdir -p /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
-Verification:
-
-```
-ls -lah /Volumes/Clemons_Data
-```
-
-Result:
-
-macOS system metadata directories detected:
-
-* `.DS_Store`
-* `.fseventsd`
-* `.Spotlight-V100`
-* `.Trashes`
-
-These are expected macOS filesystem artifacts.
-
----
-
-## Step 2 — Anchor Bridge Creation
-
-Command:
-
-```
+Step 2 — Anchor Bridge
 ln -s /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit \
 ~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
 
-Verification:
+Verification
 
-```
 readlink ~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
-Output:
-
-```
-/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
----
-
-## Step 3 — Directory Initialization
-
-Command:
-
-```
+Step 3 — Directory Initialization
 mkdir -p bins/s01_ingest bins/s02_processor bins/s03_analysis bins/s04_utils
-```
 
-Additional directories:
+Additional directories
 
-```
 data/raw/Route_A_Modern
 data/raw/Route_B_Legacy
 data/processed
 data/manifests
 logs
-```
-
-Verification:
-
-```
-find /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit -maxdepth 3
-```
-
-Result confirms directory tree creation.
-
----
-
-## Step 4 — Python Package Initialization
-
-Command:
-
-```
+Step 4 — Python Package Initialization
 touch bins/__init__.py
 touch bins/s01_ingest/__init__.py
 touch bins/s02_processor/__init__.py
 touch bins/s03_analysis/__init__.py
 touch bins/s04_utils/__init__.py
-```
+Step 5 — Root Configuration
 
-Purpose:
+config.py created to centralize:
 
-Allows secure intra-package imports within the pipeline.
+• system paths
+• compute configuration
+• embedding parameters
+• runtime invariants
 
----
+Project root resolved dynamically:
 
-## Step 5 — Root Configuration
-
-`config.py` created to define:
-
-* system paths
-* embedding configuration
-* hardware parameters
-* runtime invariants
-
-The project root is dynamically resolved via:
-
-```
 Path(__file__).resolve().parent
-```
+Step 6 — Root Orchestrator
 
-This prevents hard-coded filesystem assumptions.
+main.py created as the global execution entry point.
 
----
+Supported phases
 
-## Step 6 — Root Orchestrator Creation
-
-`main.py` created as the single command-and-control entry point.
-
-Supported phases:
-
-```
 --phase ingest
 --phase process
 --phase analyze
-```
 
-Example execution:
+Example
 
-```
 python3 main.py --phase ingest
-```
+Step 7 — Infrastructure Safety Layer
 
----
+Startup validation script
 
-## Step 7 — Infrastructure Verification Layer
-
-Startup validation script created:
-
-```
 scripts/startup_check.sh
-```
 
-The script validates:
+Checks:
 
-* NVMe mount presence
-* anchor symlink integrity
-* directory structure completeness
+• NVMe mount
+• symlink integrity
+• directory structure
+• compliance safeguards
 
-Example output:
+Phase 1 Status
 
-```
+Phase 1 Infrastructure Build: COMPLETE
+
+Phase 1.01 — Workspace Health Diagnostic
+
+Date: 2026-03-10
+
+Implemented:
+
+scripts/doctor.sh
+
+Checks include:
+
+• filesystem integrity
+• Python runtime
+• disk capacity
+• dependencies
+• MPS availability
+
+Result
+
 SYSTEM STATUS: READY
-```
-
-Pipeline execution is aborted if any condition fails.
-
----
-
-# 5. Validation Tests
-
-All operational phases were executed successfully.
-
-Commands:
-
-```
-python3 main.py --phase ingest
-python3 main.py --phase process
-python3 main.py --phase analyze
-```
-
-Observed outputs:
-
-```
-[INGEST] Placeholder orchestrator initialized.
-[PROCESS] Placeholder orchestrator initialized.
-[ANALYZE] Placeholder orchestrator initialized.
-```
-
-Startup verification executed successfully in all runs.
-
----
-
-# 6. Known Constraints
-
-The pipeline assumes:
-
-* external NVMe volume `Clemons_Data` is mounted
-* anchor symlink remains intact
-* Python environment includes required libraries
-
-If the NVMe drive is not mounted, the startup verification script halts execution.
-
----
-
-# 7. Reproducibility Notes
-
-The system architecture was intentionally designed to support reproducible computational analysis.
-
-Key design principles:
-
-* modular phase orchestration
-* hardware-aware compute configuration
-* deterministic filesystem architecture
-* infrastructure validation prior to pipeline execution
-
-These practices support transparent computational methods suitable for peer-reviewed publication.
-
----
-
-# 8. Git Snapshot (Recommended)
-
-To lock the audit to a specific code state:
-
-Run:
-
-```
-git rev-parse HEAD
-```
-
-Record the commit hash here.
-
-```
-Git Snapshot:
-<commit hash>
-```
-
----
-
-# Status
-
-**Phase 1 Infrastructure Build: COMPLETE**
-
-## Phase 1.01 — Workspace Health Diagnostic
+Phase 1.02 — Orchestrator Diagnostic Refactor
 
 Date: 2026-03-10
 
-Changes:
-- added scripts/doctor.sh
-- implemented filesystem, Python, dependency, and MPS environment checks
-- established preflight health verification for the workspace
+main.py updated to support optional diagnostics.
 
-## Phase 1.01.1 — Workspace Health Diagnostic
+Flags
 
-Date: 2026-03-10
+--doctor
+--full-check
 
-Changes:
-- added scripts/doctor.sh
-- implemented filesystem, Python runtime, disk capacity, dependency, and MPS checks
-- validated workspace readiness before pipeline execution
+This enables controlled execution of full system health checks when needed.
 
-Verification:
-- doctor.sh returned SYSTEM STATUS: READY
-- Pass: 17
-- Warn: 0
-- Fail: 0
+Phase 2 — Smart PDF Extraction Engine
 
-Git Commit:
-- 1deeb88
-
-## Phase 1.02 — Main Orchestrator Refactor for Optional Diagnostics
-
-Date: 2026-03-10
-
-Changes:
-- refactored main.py to support optional full workspace diagnostics
-- retained startup_check.sh as the mandatory filesystem safety gate
-- added --doctor / --full-check flag to invoke scripts/doctor.sh when requested
-
-Operational effect:
-- normal phase runs execute only the startup safety check
-- diagnostic phase runs can invoke full workspace health validation
-
-Verification:
-- python3 main.py --phase ingest
-- python3 main.py --phase process --doctor
-- python3 main.py --phase analyze --full-check
-
-## Phase 2 — Corpus Ingestion
-
-Date: 2026-03-12
-
-Changes:
-- implemented ingestion pipeline
-- added manifest generation
-## Change — 2026-03-10
-Implemented ingestion pipeline
-
-Phase 2 — OCR Pipeline Debugging and Extraction Architecture Update
 Date: 2026-03-14
-Phase: Phase 2 – Document Extraction Reliability
-Status: In Progress
+
 Objective
-Phase 2 focuses on building a reliable document extraction pipeline capable of processing the full historical corpus of agricultural education literature.
-The corpus contains two distinct document classes:
-Digital PDFs
-Scanned archival PDFs
-Both must be processed into clean corpus-ready text suitable for semantic embedding and analysis.
-Corpus Test Documents
-Two documents were used to validate the extraction pipeline.
-Modern Digital PDF
-Journal of Agricultural Education (2026)
-Characteristics:
-Embedded text layer
-Extractable via PyMuPDF
-No OCR required
-Historical Scan
-Journal of the American Association of Teacher Educators in Agriculture (1960)
-Characteristics:
-Image-only pages
-No embedded text layer
-Requires OCR extraction
-Issues Discovered During Pipeline Audit
-Variable Reference Error
-Original OCR loop contained a variable mismatch.
-Original code:
-page_content = pytesseract.image_to_string(image)
-ocr_text += page_text
-Issue:
-page_text was never defined.
-Corrected code:
-page_content = pytesseract.image_to_string(image)
-ocr_text += page_content
-This bug would cause the OCR pipeline to fail during runtime.
-OCR Dependency Assumption
-The original pipeline assumed the presence of the following system dependencies:
-Tesseract OCR
-Poppler (for pdf2image)
-If either dependency is missing, the pipeline will fail.
-Future pipeline versions must implement:
-dependency detection
-graceful fallback logic
-Inefficient Extraction Strategy
-The original workflow forced OCR for all documents.
-Original architecture:
-PDF → OCR → Clean text
-This approach is inefficient for modern PDFs that already contain embedded text.
-Updated extraction strategy:
-PDF Input
-   │
-   ├─ Attempt PyMuPDF extraction
-   │
-   ├─ If extracted text length > threshold
-   │        └─ Use digital text
-   │
-   └─ Else
-          └─ Run OCR pipeline
-This architecture significantly reduces processing time for modern documents.
-Hard-Stop Text Cleaning Update
-The pipeline includes a reference-section removal step to prevent citation lists from contaminating the semantic corpus.
-Original stop markers:
-References
-Literature Cited
-Expanded stop markers:
+
+Create a robust extraction engine capable of processing both:
+
+• digital PDFs
+• scanned archival PDFs
+
+Extraction Strategy
+
+Pipeline logic
+
+PDF
+ │
+ ├─ attempt PyMuPDF extraction
+ │
+ ├─ if sufficient text found
+ │      use digital extraction
+ │
+ └─ else
+        fallback to OCR
+Implemented Processor Modules
+bins/s02_processor/cleaning.py
+bins/s02_processor/digital_extract.py
+bins/s02_processor/ocr_engine.py
+bins/s02_processor/smart_extract.py
+bins/s02_processor/diagnostics.py
+bins/s02_processor/orchestrator.py
+
+External dependencies validated
+
+• PyMuPDF
+• Tesseract
+• Poppler
+• pytesseract
+• pdf2image
+
+Cleaning Pipeline
+
+Hard-stop truncation removes reference sections.
+
+Stop markers
+
 References
 Literature Cited
 Acknowledgements
 Funding
-This ensures the embedding corpus contains only the article body.
-Phase 2 Baseline OCR Engine
-Corrected OCR function:
-def perform_ocr(pdf_path):
+Benchmark Validation
+Modern Digital PDF
 
-    print(f"[*] Starting OCR Engine for: {pdf_path}")
+File
 
-    images = convert_from_path(pdf_path, dpi=300)
+2026.pdf
 
-    ocr_text = ""
+Results
 
-    for i, image in enumerate(images):
+method: fitz
+pages: 18
+raw text: 55,599
+clean text: 43,498
+Legacy Scan
 
-        print(f"Processing page {i+1}/{len(images)}")
+File
 
-        page_content = pytesseract.image_to_string(image)
+Vol1_1.pdf
 
-        ocr_text += page_content
+Results
 
-    return ocr_text
-This implementation serves as the baseline for further optimization.
-Planned Extraction Engine
-The final Phase 2 system will implement:
-smart_extract_pdf(pdf_path)
-Responsibilities:
-detect digital vs scanned PDFs
-route to the correct extraction method
-perform OCR only when necessary
-apply reference-stop cleaning
-output standardized corpus-ready text
-Phase 2 Progress Status
+method: ocr
+pages: 9
+raw text: 31,782
+clean text: 1,943
+Processor Output
+
+Generated artifacts
+
+data/processed/Route_A_Modern/2026.txt
+data/processed/Route_B_Legacy/Vol1_1.txt
+Phase 2.1 — Corpus Ledger System
+
+Date: 2026-03-14
+Status: COMPLETE
+
+Purpose
+
+Create a deterministic corpus registry tracking all processed manuscripts.
+
+Location
+
+data/manifests/jae_master_ledger.csv
+Implemented Modules
+bins/s01_ingest/ledger.py
+bins/s01_ingest/orchestrator.py
+Ledger Schema
+doc_id
+source_filename
+source_pdf_path
+route
+processed_text_path
+extraction_method
+page_count
+raw_text_length
+clean_text_length
+status
+processed_timestamp
+Validation
+
+Benchmark manuscripts registered
+
+2026.pdf
+Vol1_1.pdf
+
+Routes verified
+
+Route_A_Modern
+Route_B_Legacy
+
+Ledger validated using
+
+column -s, -t < data/manifests/jae_master_ledger.csv
+
+Phase 2.2 — Universal Segmenter
+
+Date: 2026-03-14
+Status: COMPLETE
+
+Purpose
+
+Convert cleaned article text into structured semantic sections used for corpus analysis.
+
+Location
+
+bins/s02_processor/segmenter.py
+Canonical Segmentation Schema
+A_TAK
+A_Intro
+A_Methods
+A_Results
+Segmentation Strategy
+Legacy Manuscripts (<1985)
+
+Technique
+
+proximity segmentation
+character fallback segmentation
+
+Designed for OCR-derived text lacking structured headings.
+
+Modern Manuscripts (≥1985)
+
+Technique
+
+regex heading detection
+
+Detected headings include
+
+Abstract
+Introduction
+Methods
+Results
+Discussion
+Benchmark Results
+
+Modern document
+
+2026.pdf
+A_TAK      381 chars
+A_Intro    11896 chars
+A_Methods  1867 chars
+A_Results  42598 chars
+
+Legacy document
+
+Vol1_1.pdf
+
+Segmented using OCR fallback logic.
+
+Phase 2.3 — Benchmark Regression Tests
+
+Status: Planned
+
+Location
+
+tests/test_benchmarks.py
+
+Purpose
+
+Ensure extraction and segmentation remain stable as the system evolves.
+
+Tests will verify
+
+• digital extraction route
+• OCR fallback
+• cleaning behavior
+• segmentation correctness
+
+Research Compliance Safeguards
+
+Ethics and network safeguards integrated into the build workflow.
+
+Implemented controls
+
+docs/RESEARCH_COMPLIANCE.md
+scripts/compliance_check.sh
+scripts/startup_check.sh
+
+These ensure:
+
+• adherence to publisher policies
+• conservative API usage
+• transparent research practices
+• institutional network compliance
+
+Deferred Components
+
+The following components are intentionally postponed:
+
+bins/s01_ingest/api_harvester.py
+embedding pipeline
+vector index
+remote corpus acquisition
+
+These will only be implemented after:
+
+• ledger stabilization
+• segmentation validation
+• regression testing
+
+Current System Status
 Component	Status
-OCR Engine Bug Fix	Completed
-Reference Cleaning	Updated
-Corpus Test Validation	Completed
-Smart Extraction Engine	Pending
-Batch Corpus Processor	Pending
+Infrastructure	COMPLETE
+Extraction Engine	COMPLETE
+Corpus Ledger	COMPLETE
+Universal Segmenter	COMPLETE
+
+
+## Change — 2026-03-15
+Implemented manuscript workspace.
+
+Created:
+- manuscript/paper
+- manuscript/notes
+- manuscript/methods
+- manuscript/references
+
+Purpose:
+Separate academic writing from engineering documentation while keeping the project on the NVMe.
+
+## Change — 2026-03-15
+Final Q and A for script verification before Phase 2.3
+
+## Change — 2026-03-15
+Final Q and A Before Closeout
+
+## Phase 2.3 — Benchmark Regression Tests
+
+Date: 2026-03-15  
+Status: COMPLETE
+
+Location:
+`tests/test_benchmarks.py`
+
+Purpose:
+Establish automated regression tests for the benchmark corpus to ensure extraction, segmentation, and ledger registration remain stable as the pipeline evolves.
+
+Validated benchmarks:
+- `2026.pdf` (modern digital route)
+- `Vol1_1.pdf` (legacy OCR route)
+
+Tests implemented:
+- modern extraction route
+- legacy extraction route
+- modern segmentation
+- legacy segmentation
+- ledger registration
+
+Result:
+All benchmark regression tests passed successfully (5/5).
+
+## Phase 3.1 — Structured Section Export Engine
+
+Date: 2026-03-15  
+Status: COMPLETE
+
+Location:
+- `bins/s03_analysis/section_export.py`
+- `bins/s03_analysis/orchestrator.py`
+
+Purpose:
+Create persistent JSON exports containing document metadata and canonical segmented text sections for downstream analytical modeling.
+
+Structured output path:
+- `data/structured/Route_A_Modern/2026.json`
+- `data/structured/Route_B_Legacy/Vol1_1.json`
+
+Validation:
+- modern benchmark export passed
+- legacy benchmark export passed
+
+Result:
+The analysis preparation layer now produces stable structured JSON artifacts suitable for embedding and downstream semantic analysis.
+
+## Phase 3.1 — Structured Section Export Engine
+
+Date: 2026-03-15  
+Status: COMPLETE
+
+Location:
+- `bins/s03_analysis/section_export.py`
+- `bins/s03_analysis/orchestrator.py`
+
+Purpose:
+Create persistent JSON exports containing document metadata and canonical segmented text sections for downstream analytical modeling.
+
+Structured output path:
+- `data/structured/Route_A_Modern/2026.json`
+- `data/structured/Route_B_Legacy/Vol1_1.json`
+
+Fields exported:
+- document identity
+- route
+- inferred year
+- extraction method
+- page count
+- raw/clean text lengths
+- segmentation strategy
+- canonical sections:
+  - `A_TAK`
+  - `A_Intro`
+  - `A_Methods`
+  - `A_Results`
+
+Validation:
+- modern benchmark export passed
+- legacy benchmark export passed
+- `tests/test_section_exports.py` passed successfully (2/2)
+
+Result:
+The analysis preparation layer now produces stable structured JSON artifacts suitable for embedding and downstream semantic analysis.

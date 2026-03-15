@@ -1,0 +1,9 @@
+# Large corpus data (do not track)
+data/raw/**
+data/processed/**
+
+# Keep structured and manifest data tracked
+!data/manifests/
+!data/manifests/**
+!data/structured/
+!data/structured/**

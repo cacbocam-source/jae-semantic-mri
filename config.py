@@ -24,6 +24,7 @@ RAW_ROUTE_MODERN = RAW_DIR / "Route_A_Modern"
 RAW_ROUTE_LEGACY = RAW_DIR / "Route_B_Legacy"
 
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
+STRUCTURED_DIR = BASE_DIR / "data" / "structured"
 MANIFEST_DIR = BASE_DIR / "data" / "manifests"
 LOG_DIR = BASE_DIR / "logs"
 
@@ -80,6 +81,7 @@ REQUIRED_DIRS = (
     RAW_ROUTE_MODERN,
     RAW_ROUTE_LEGACY,
     PROCESSED_DIR,
+    STRUCTURED_DIR,
     MANIFEST_DIR,
     LOG_DIR,
 )
@@ -96,6 +98,7 @@ __all__ = [
     "RAW_ROUTE_MODERN",
     "RAW_ROUTE_LEGACY",
     "PROCESSED_DIR",
+    "STRUCTURED_DIR",
     "MANIFEST_DIR",
     "LOG_DIR",
     "MASTER_LEDGER",
