@@ -7,3 +7,15 @@ data/processed/**
 !data/manifests/**
 !data/structured/
 !data/structured/**
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Embeddings / large artifacts
+data/embeddings/
+data/manifests/
+data/testing/
+
+# OS
+.DS_Store

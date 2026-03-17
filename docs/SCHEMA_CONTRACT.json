@@ -1,0 +1,28 @@
+{
+  "structured_export": {
+    "required_fields": [
+      "doc_id",
+      "source_filename",
+      "source_pdf_path",
+      "route",
+      "year",
+      "extraction_method",
+      "page_count",
+      "raw_text_length",
+      "clean_text_length",
+      "segmentation_strategy",
+      "A_intro",
+      "A_methods",
+      "A_results"
+    ],
+    "routes": [
+      "Route_A_Modern",
+      "Route_B_Legacy"
+    ],
+    "sections": [
+      "A_intro",
+      "A_methods",
+      "A_results"
+    ]
+  }
+}

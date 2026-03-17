@@ -226,3 +226,18 @@ Semantic Metrics	Planned
 Statistical Testing	Planned
 
 pipeline now exports persistent structured section JSON files, not just text.
+
+Segmenter → canonical section fields
+
+A_intro
+A_methods
+A_results
+
+Example description:
+
+The segmentation stage extracts canonical article sections which
+are exported in the structured artifact as:
+
+A_intro – Introduction text  
+A_methods – Methods text  
+A_results – Results text

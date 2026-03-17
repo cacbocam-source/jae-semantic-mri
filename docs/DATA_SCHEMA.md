@@ -278,3 +278,62 @@ must increment the schema version.
 # Status
 
 Schema Version: 1.0
+
+## Structured Section Export Schema
+
+Structured JSON outputs contain flattened section fields.
+
+| Field | Type | Description |
+|------|------|-------------|
+| doc_id | string | Stable document identifier |
+| route | string | Route_A_Modern or Route_B_Legacy |
+| year | int | Publication year |
+| extraction_method | string | fitz or ocr |
+| page_count | int | Page count |
+| raw_text_length | int | Length before cleaning |
+| clean_text_length | int | Length after cleaning |
+| segmentation_strategy | string | Segmenter strategy used |
+| A_intro | string | Introduction section |
+| A_methods | string | Methods section |
+| A_results | string | Results section |
+
+### Section Key Constants
+
+The canonical section identifiers are defined in:
+
+bins/s04_utils/schemas.py
+A_INTRO = "A_intro"
+A_METHODS = "A_methods"
+A_RESULTS = "A_results"
+
+---
+
+# 3️⃣ docs/METHODS_PIPELINE.md
+Update the **pipeline stage description**.
+
+### Replace any mention of:
+
+
+sections dictionary
+
+
+### With:
+
+```markdown
+### Phase 3: Structured Section Export
+
+The cleaned article text is segmented into canonical sections.
+
+The segmenter extracts three primary sections:
+
+• Introduction  
+• Methods  
+• Results  
+
+These are exported as **top-level JSON fields**:
+
+A_intro
+A_methods
+A_results
+This flattened representation simplifies downstream embedding
+and avoids nested data structures that complicate validation.

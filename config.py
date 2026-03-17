@@ -28,6 +28,18 @@ STRUCTURED_DIR = BASE_DIR / "data" / "structured"
 MANIFEST_DIR = BASE_DIR / "data" / "manifests"
 LOG_DIR = BASE_DIR / "logs"
 
+# Testing / Embeddings
+TESTING_DIR = BASE_DIR / "data" / "testing"
+DOI_TEST_DIR = TESTING_DIR / "doi_abstracts_2021_2026"
+DOI_TEST_RAW_DIR = DOI_TEST_DIR / "raw"
+DOI_TEST_STRUCTURED_DIR = DOI_TEST_DIR / "structured"
+DOI_TEST_EMBEDDINGS_DIR = DOI_TEST_DIR / "embeddings"
+DOI_TEST_METRICS_DIR = DOI_TEST_DIR / "metrics"
+
+EMBEDDINGS_DIR = BASE_DIR / "data" / "embeddings"
+EMBEDDINGS_ROUTE_MODERN = EMBEDDINGS_DIR / "Route_A_Modern"
+EMBEDDINGS_ROUTE_LEGACY = EMBEDDINGS_DIR / "Route_B_Legacy"
+
 MASTER_LEDGER = MANIFEST_DIR / "jae_master_ledger.csv"
 LOG_FILE = LOG_DIR / "system.log"
 
@@ -44,6 +56,7 @@ TESSERACT_LANG = "eng"
 STOP_SECTION_PATTERN = (
     r"\nReferences|\nLiterature Cited|\nAcknowledgements|\nFunding"
 )
+
 # --- DATA ARCHITECTURE ---
 EPOCH_STEP = 5
 START_YEAR = 1960
@@ -84,7 +97,20 @@ REQUIRED_DIRS = (
     STRUCTURED_DIR,
     MANIFEST_DIR,
     LOG_DIR,
+    TESTING_DIR,
+    DOI_TEST_DIR,
+    DOI_TEST_RAW_DIR,
+    DOI_TEST_STRUCTURED_DIR,
+    DOI_TEST_EMBEDDINGS_DIR,
+    DOI_TEST_METRICS_DIR,
+    EMBEDDINGS_DIR,
+    EMBEDDINGS_ROUTE_MODERN,
+    EMBEDDINGS_ROUTE_LEGACY,
 )
+
+for directory in REQUIRED_DIRS:
+    directory.mkdir(parents=True, exist_ok=True)
+
 __all__ = [
     "PROJECT_NAME",
     "PROJECT_TITLE",
@@ -101,6 +127,15 @@ __all__ = [
     "STRUCTURED_DIR",
     "MANIFEST_DIR",
     "LOG_DIR",
+    "TESTING_DIR",
+    "DOI_TEST_DIR",
+    "DOI_TEST_RAW_DIR",
+    "DOI_TEST_STRUCTURED_DIR",
+    "DOI_TEST_EMBEDDINGS_DIR",
+    "DOI_TEST_METRICS_DIR",
+    "EMBEDDINGS_DIR",
+    "EMBEDDINGS_ROUTE_MODERN",
+    "EMBEDDINGS_ROUTE_LEGACY",
     "MASTER_LEDGER",
     "LOG_FILE",
     "DEVICE",
@@ -114,7 +149,5 @@ __all__ = [
     "EPOCH_STEP",
     "START_YEAR",
     "END_YEAR",
+    "REQUIRED_DIRS",
 ]
-
-for directory in REQUIRED_DIRS:
-    directory.mkdir(parents=True, exist_ok=True)

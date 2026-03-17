@@ -1,28 +1,15 @@
 from __future__ import annotations
 
-import json
-from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from config import RAW_DIR, STRUCTURED_DIR
 from bins.s01_ingest.ledger import infer_route, make_doc_id
 from bins.s02_processor.segmenter import UniversalSegmenter
 from bins.s02_processor.smart_extract import smart_extract_pdf
-
-
-@dataclass(frozen=True)
-class SectionExport:
-    doc_id: str
-    source_filename: str
-    source_pdf_path: str
-    route: str
-    year: int
-    extraction_method: str
-    page_count: int
-    raw_text_length: int
-    clean_text_length: int
-    segmentation_strategy: str
-    sections: dict[str, str]
+from bins.s04_utils.artifacts import (
+    StructuredSectionArtifact,
+    build_structured_section_artifact,
+)
 
 
 def infer_year_from_path(pdf_path: Path) -> int:
@@ -44,7 +31,7 @@ def infer_year_from_path(pdf_path: Path) -> int:
         raise ValueError(f"Unable to infer year from filename: {name}") from exc
 
 
-def build_section_export(pdf_path: str | Path) -> SectionExport:
+def build_section_export(pdf_path: str | Path) -> StructuredSectionArtifact:
     path = Path(pdf_path).expanduser().resolve()
 
     extraction = smart_extract_pdf(path)
@@ -53,7 +40,7 @@ def build_section_export(pdf_path: str | Path) -> SectionExport:
     segmenter = UniversalSegmenter(extraction.clean_text, year)
     segmentation = segmenter.get_result()
 
-    return SectionExport(
+    return build_structured_section_artifact(
         doc_id=make_doc_id(path),
         source_filename=path.name,
         source_pdf_path=str(path),
@@ -75,14 +62,9 @@ def structured_output_path(pdf_path: str | Path) -> Path:
 
 
 def write_section_export(pdf_path: str | Path) -> Path:
-    export = build_section_export(pdf_path)
+    artifact = build_section_export(pdf_path)
     output_path = structured_output_path(pdf_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with output_path.open("w", encoding="utf-8") as f:
-        json.dump(asdict(export), f, indent=2, ensure_ascii=False)
-
-    return output_path
+    return artifact.write_json(output_path)
 
 
 if __name__ == "__main__":

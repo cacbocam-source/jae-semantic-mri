@@ -3,8 +3,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-
-SECTION_NOT_FOUND = "SECTION_NOT_FOUND"
+from bins.s04_utils.schemas import (
+    A_INTRO,
+    A_METHODS,
+    A_RESULTS,
+    A_TAK,
+    SECTION_NOT_FOUND,
+)
+from bins.s04_utils.validators import normalize_section_text, validate_section_mapping
 
 
 @dataclass(frozen=True)
@@ -27,9 +33,9 @@ class UniversalSegmenter:
 
     Canonical output sections:
     - A_TAK
-    - A_Intro
-    - A_Methods
-    - A_Results
+    - A_intro
+    - A_methods
+    - A_results
     """
 
     def __init__(self, text: str, year: int) -> None:
@@ -38,15 +44,17 @@ class UniversalSegmenter:
 
     def get_sections(self) -> dict[str, str]:
         """
-        Return the canonical section mapping.
+        Return the canonical validated section mapping.
         """
         if not self.text:
             return self._empty_sections()
 
         if self.year < 1985:
-            return self._segment_era_1()
+            sections = self._segment_era_1()
+        else:
+            sections = self._segment_era_3()
 
-        return self._segment_era_3()
+        return validate_section_mapping(sections)
 
     def get_result(self) -> SegmentationResult:
         """
@@ -61,64 +69,69 @@ class UniversalSegmenter:
 
     def _empty_sections(self) -> dict[str, str]:
         return {
-            "A_TAK": SECTION_NOT_FOUND,
-            "A_Intro": SECTION_NOT_FOUND,
-            "A_Methods": SECTION_NOT_FOUND,
-            "A_Results": SECTION_NOT_FOUND,
+            A_TAK: SECTION_NOT_FOUND,
+            A_INTRO: SECTION_NOT_FOUND,
+            A_METHODS: SECTION_NOT_FOUND,
+            A_RESULTS: SECTION_NOT_FOUND,
         }
 
     def _segment_era_1(self) -> dict[str, str]:
         """
         Proximity-based slicing for unstandardized legacy papers.
 
-        This version is more robust for OCR-derived text by falling back to
-        character-range slicing if line-based segmentation is too sparse.
+        For sparse OCR output, fall back to character-range slicing.
+        For denser text, use line-based proportional slicing.
         """
         lines = [line.strip() for line in self.text.splitlines() if line.strip()]
 
         if not lines:
             return self._empty_sections()
 
-        # OCR text can collapse structure. Fall back to character windows if needed.
         if len(lines) < 30:
-            text = self.text.strip()
-            total_chars = len(text)
+            return self._segment_era_1_character_windows()
 
-            if total_chars == 0:
-                return self._empty_sections()
+        return self._segment_era_1_line_windows(lines)
 
-            tak_end = min(max(400, int(total_chars * 0.20)), total_chars)
-            intro_end = min(max(tak_end, int(total_chars * 0.45)), total_chars)
-            methods_end = min(max(intro_end, int(total_chars * 0.65)), total_chars)
+    def _segment_era_1_character_windows(self) -> dict[str, str]:
+        text = self.text.strip()
+        total_chars = len(text)
 
-            a_tak = text[:tak_end].strip()
-            a_intro = text[tak_end:intro_end].strip()
-            a_methods = text[intro_end:methods_end].strip()
-            a_results = text[methods_end:].strip()
+        if total_chars == 0:
+            return self._empty_sections()
 
-            return {
-                "A_TAK": a_tak if a_tak else SECTION_NOT_FOUND,
-                "A_Intro": a_intro if a_intro else SECTION_NOT_FOUND,
-                "A_Methods": a_methods if a_methods else SECTION_NOT_FOUND,
-                "A_Results": a_results if a_results else SECTION_NOT_FOUND,
-            }
+        tak_end = min(max(400, int(total_chars * 0.20)), total_chars)
+        intro_end = min(max(tak_end, int(total_chars * 0.45)), total_chars)
+        methods_end = min(max(intro_end, int(total_chars * 0.65)), total_chars)
 
+        a_tak = text[:tak_end]
+        a_intro = text[tak_end:intro_end]
+        a_methods = text[intro_end:methods_end]
+        a_results = text[methods_end:]
+
+        return {
+            A_TAK: normalize_section_text(a_tak),
+            A_INTRO: normalize_section_text(a_intro),
+            A_METHODS: normalize_section_text(a_methods),
+            A_RESULTS: normalize_section_text(a_results),
+        }
+
+    def _segment_era_1_line_windows(self, lines: list[str]) -> dict[str, str]:
         total = len(lines)
 
         tak_end = min(15, total)
         intro_end = max(tak_end, int(total * 0.40))
         methods_end = max(intro_end, int(total * 0.60))
 
-        a_tak = "\n".join(lines[:tak_end]).strip()
-        a_intro = "\n".join(lines[tak_end:intro_end]).strip()
-        a_methods = "\n".join(lines[intro_end:methods_end]).strip()
-        a_results = "\n".join(lines[methods_end:]).strip()
+        a_tak = "\n".join(lines[:tak_end])
+        a_intro = "\n".join(lines[tak_end:intro_end])
+        a_methods = "\n".join(lines[intro_end:methods_end])
+        a_results = "\n".join(lines[methods_end:])
 
         return {
-            "A_TAK": a_tak if a_tak else SECTION_NOT_FOUND,
-            "A_Intro": a_intro if a_intro else SECTION_NOT_FOUND,
-            "A_Methods": a_methods if a_methods else SECTION_NOT_FOUND,
-            "A_Results": a_results if a_results else SECTION_NOT_FOUND,
+            A_TAK: normalize_section_text(a_tak),
+            A_INTRO: normalize_section_text(a_intro),
+            A_METHODS: normalize_section_text(a_methods),
+            A_RESULTS: normalize_section_text(a_results),
         }
 
     def _segment_era_3(self) -> dict[str, str]:
@@ -126,21 +139,20 @@ class UniversalSegmenter:
         Regex-based slicing for standardized modern papers.
         """
         return {
-            "A_TAK": self._regex_find(
-                r"(?:Abstract)(.*?)(?:Introduction|Purpose|Theoretical Framework)",
+            A_TAK: self._regex_find(
+                r"(?:Abstract)\s*(.*?)(?:Introduction|Purpose|Theoretical Framework|Purpose and Research Questions)",
                 self.text,
             ),
-            "A_Intro": self._regex_find(
-                r"(?:Introduction|Theoretical Framework|Purpose and Research Questions)"
-                r"(.*?)(?:Methodology|Methods)",
+            A_INTRO: self._regex_find(
+                r"(?:Introduction|Theoretical Framework|Purpose and Research Questions)\s*(.*?)(?:Methodology|Methods)",
                 self.text,
             ),
-            "A_Methods": self._regex_find(
-                r"(?:Methodology|Methods)(.*?)(?:Findings|Results|Discussion)",
+            A_METHODS: self._regex_find(
+                r"(?:Methodology|Methods)\s*(.*?)(?:Findings|Results|Discussion)",
                 self.text,
             ),
-            "A_Results": self._regex_find(
-                r"(?:Findings|Results|Discussion)(.*?)$",
+            A_RESULTS: self._regex_find(
+                r"(?:Findings|Results|Discussion)\s*(.*?)$",
                 self.text,
             ),
         }
@@ -150,7 +162,10 @@ class UniversalSegmenter:
         Return the first matched section body or SECTION_NOT_FOUND.
         """
         match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-        return match.group(1).strip() if match else SECTION_NOT_FOUND
+        if not match:
+            return SECTION_NOT_FOUND
+
+        return normalize_section_text(match.group(1))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import csv
@@ -6,13 +5,22 @@ import sys
 from pathlib import Path
 
 # Ensure project root is importable when running:
-# python3 tests/test_benchmarks.py
+# python tests/test_benchmarks.py
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MASTER_LEDGER, RAW_ROUTE_LEGACY, RAW_ROUTE_MODERN
-from bins.s02_processor.segmenter import SECTION_NOT_FOUND, UniversalSegmenter
+from bins.s02_processor.segmenter import UniversalSegmenter
 from bins.s02_processor.smart_extract import smart_extract_pdf
+from bins.s04_utils.schemas import (
+    A_INTRO,
+    A_METHODS,
+    A_RESULTS,
+    A_TAK,
+    SECTION_KEYS,
+    SECTION_NOT_FOUND,
+)
+from bins.s04_utils.validators import is_real_section_text
 
 
 def assert_true(condition: bool, message: str) -> None:
@@ -49,13 +57,13 @@ def test_modern_segmentation() -> None:
     extracted = smart_extract_pdf(pdf_path)
     sections = UniversalSegmenter(extracted.clean_text, 2026).get_sections()
 
-    expected_keys = {"A_TAK", "A_Intro", "A_Methods", "A_Results"}
+    expected_keys = set(SECTION_KEYS)
     assert_true(set(sections.keys()) == expected_keys, "Modern segmentation keys mismatch")
 
-    for key in expected_keys:
+    for key in SECTION_KEYS:
         assert_true(key in sections, f"Missing modern section key: {key}")
         assert_true(sections[key] != SECTION_NOT_FOUND, f"Modern {key} not found")
-        assert_true(len(sections[key]) > 0, f"Modern {key} must be non-empty")
+        assert_true(is_real_section_text(sections[key]), f"Modern {key} must be real text")
 
 
 def test_legacy_segmentation() -> None:
@@ -63,13 +71,28 @@ def test_legacy_segmentation() -> None:
     extracted = smart_extract_pdf(pdf_path)
     sections = UniversalSegmenter(extracted.clean_text, 1960).get_sections()
 
-    expected_keys = {"A_TAK", "A_Intro", "A_Methods", "A_Results"}
+    expected_keys = set(SECTION_KEYS)
     assert_true(set(sections.keys()) == expected_keys, "Legacy segmentation keys mismatch")
 
-    for key in expected_keys:
+    for key in SECTION_KEYS:
         assert_true(key in sections, f"Missing legacy section key: {key}")
         assert_true(sections[key] != SECTION_NOT_FOUND, f"Legacy {key} not found")
-        assert_true(len(sections[key]) > 0, f"Legacy {key} must be non-empty")
+        assert_true(is_real_section_text(sections[key]), f"Legacy {key} must be real text")
+
+
+def test_canonical_segmentation_schema() -> None:
+    pdf_path = RAW_ROUTE_MODERN / "2026.pdf"
+    extracted = smart_extract_pdf(pdf_path)
+    sections = UniversalSegmenter(extracted.clean_text, 2026).get_sections()
+
+    assert_true(A_TAK in sections, "Missing canonical key A_TAK")
+    assert_true(A_INTRO in sections, "Missing canonical key A_intro")
+    assert_true(A_METHODS in sections, "Missing canonical key A_methods")
+    assert_true(A_RESULTS in sections, "Missing canonical key A_results")
+
+    assert_true("A_Intro" not in sections, "Legacy key A_Intro must not appear")
+    assert_true("A_Methods" not in sections, "Legacy key A_Methods must not appear")
+    assert_true("A_Results" not in sections, "Legacy key A_Results must not appear")
 
 
 def test_ledger_registration() -> None:
@@ -91,6 +114,7 @@ def run_all_tests() -> None:
         ("Legacy Extraction", test_legacy_extraction),
         ("Modern Segmentation", test_modern_segmentation),
         ("Legacy Segmentation", test_legacy_segmentation),
+        ("Canonical Segmentation Schema", test_canonical_segmentation_schema),
         ("Ledger Registration", test_ledger_registration),
     ]
 
