@@ -1,21 +1,23 @@
 # Large corpus data (do not track)
 data/raw/**
 data/processed/**
+data/metrics/
+docs/_audit_backups/
 
 # Keep structured and manifest data tracked
 !data/manifests/
 !data/manifests/**
 !data/structured/
 !data/structured/**
+
+# Embeddings / large artifacts
+data/embeddings/
+data/testing/
+
 # Python
 __pycache__/
 *.pyc
 *.pyo
-
-# Embeddings / large artifacts
-data/embeddings/
-data/manifests/
-data/testing/
 
 # OS
 .DS_Store

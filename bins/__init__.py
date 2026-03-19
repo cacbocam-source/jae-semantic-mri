@@ -1,3 +1,1 @@
-def run() -> int:
-    print("[PROCESS] Placeholder orchestrator initialized.")
-    return 0
+"""Top-level package for the JAE Legacy Audit pipeline."""
