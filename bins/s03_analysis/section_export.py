@@ -10,32 +10,14 @@ from bins.s04_utils.artifacts import (
     StructuredSectionArtifact,
     build_structured_section_artifact,
 )
-
-
-def infer_year_from_path(pdf_path: Path) -> int:
-    """
-    Infer year from filename for current benchmark-compatible workflow.
-    """
-    name = pdf_path.name
-
-    if name == "2026.pdf":
-        return 2026
-
-    if name == "Vol1_1.pdf":
-        return 1960
-
-    stem = pdf_path.stem
-    try:
-        return int(stem)
-    except ValueError as exc:
-        raise ValueError(f"Unable to infer year from filename: {name}") from exc
+from bins.s04_utils.year_resolution import resolve_year
 
 
 def build_section_export(pdf_path: str | Path) -> StructuredSectionArtifact:
     path = Path(pdf_path).expanduser().resolve()
 
     extraction = smart_extract_pdf(path)
-    year = infer_year_from_path(path)
+    year = resolve_year(path)
 
     segmenter = UniversalSegmenter(extraction.clean_text, year)
     segmentation = segmenter.get_result()

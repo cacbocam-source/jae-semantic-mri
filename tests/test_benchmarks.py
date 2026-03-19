@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import sys
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import MASTER_LEDGER, RAW_ROUTE_LEGACY, RAW_ROUTE_MODERN
+from config import RAW_ROUTE_LEGACY, RAW_ROUTE_MODERN
 from bins.s02_processor.segmenter import UniversalSegmenter
 from bins.s02_processor.smart_extract import smart_extract_pdf
 from bins.s04_utils.schemas import (
@@ -95,19 +94,6 @@ def test_canonical_segmentation_schema() -> None:
     assert_true("A_Results" not in sections, "Legacy key A_Results must not appear")
 
 
-def test_ledger_registration() -> None:
-    assert_true(MASTER_LEDGER.exists(), f"Missing ledger file: {MASTER_LEDGER}")
-
-    with MASTER_LEDGER.open("r", newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
-
-    filenames = {row["source_filename"] for row in rows}
-
-    assert_true("2026.pdf" in filenames, "2026.pdf missing from ledger")
-    assert_true("Vol1_1.pdf" in filenames, "Vol1_1.pdf missing from ledger")
-
-
 def run_all_tests() -> None:
     tests = [
         ("Modern Extraction", test_modern_extraction),
@@ -115,7 +101,6 @@ def run_all_tests() -> None:
         ("Modern Segmentation", test_modern_segmentation),
         ("Legacy Segmentation", test_legacy_segmentation),
         ("Canonical Segmentation Schema", test_canonical_segmentation_schema),
-        ("Ledger Registration", test_ledger_registration),
     ]
 
     print("=" * 72)

@@ -39,11 +39,15 @@ echo "[3/6] Running processor benchmark tests..."
 python3 tests/test_benchmarks.py
 
 echo
-echo "[4/6] Running section export tests..."
+echo "[4/7] Running section export tests..."
 python3 tests/test_section_exports.py
 
 echo
-echo "[5/6] Staging tracked project changes..."
+echo "[5/7] Running year resolution tests..."
+python3 tests/test_year_resolution.py
+
+echo
+echo "[6/7] Staging tracked project changes..."
 git add .
 
 echo
@@ -67,7 +71,7 @@ if git diff --cached --quiet; then
 fi
 
 echo
-echo "[6/6] Creating commit..."
+echo "[7/7] Creating commit..."
 git commit -m "$COMMIT_MESSAGE"
 
 echo

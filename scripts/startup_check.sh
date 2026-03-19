@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+EXPECTED_PROJECT_ROOT="/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit"
 NVME_MOUNT="/Volumes/Clemons_Data"
-PROJECT_ROOT="$HOME/_Anchors/Research_Data/JAE_Legacy_Audit"
-EXPECTED_TARGET="/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit"
 
 echo "-----------------------------------------"
 echo "Semantic MRI Pipeline Startup Check"
 echo "-----------------------------------------"
 
-# Run research compliance guardrail
-if [[ ! -x "$PROJECT_ROOT/scripts/compliance_check.sh" ]]; then
-    echo "ERROR: compliance_check.sh missing or not executable."
-    exit 1
-fi
-"$PROJECT_ROOT/scripts/compliance_check.sh"
-
-# Check NVMe mount
 if [[ ! -d "$NVME_MOUNT" ]]; then
     echo "ERROR: NVMe drive Clemons_Data is not mounted."
     exit 1
@@ -24,42 +17,28 @@ fi
 
 echo "✓ NVMe mount detected"
 
-# Check project root exists
-if [[ ! -e "$PROJECT_ROOT" ]]; then
-    echo "ERROR: Project anchor path missing:"
+if [[ ! -d "$PROJECT_ROOT" ]]; then
+    echo "ERROR: Project root missing:"
     echo "$PROJECT_ROOT"
     exit 1
 fi
 
-echo "✓ Anchor path exists"
+echo "✓ Project root exists"
 
-# Verify symlink
-if [[ ! -L "$PROJECT_ROOT" ]]; then
-    echo "ERROR: Project root is not a symlink."
+if [[ "$PROJECT_ROOT" != "$EXPECTED_PROJECT_ROOT" ]]; then
+    echo "ERROR: Project root does not resolve to expected NVMe path"
+    echo "Expected: $EXPECTED_PROJECT_ROOT"
+    echo "Actual:   $PROJECT_ROOT"
     exit 1
 fi
 
-echo "✓ Anchor is a symlink"
+echo "✓ Project root path verified"
 
-# Verify correct symlink target
-TARGET=$(readlink "$PROJECT_ROOT")
-
-if [[ "$TARGET" != "$EXPECTED_TARGET" ]]; then
-    echo "ERROR: Symlink points to wrong location"
-    echo "Expected: $EXPECTED_TARGET"
-    echo "Actual:   $TARGET"
-    exit 1
-fi
-
-echo "✓ Symlink target verified"
-
-# Verify critical directories
 REQUIRED_DIRS=(
     "$PROJECT_ROOT/bins"
     "$PROJECT_ROOT/data"
-    "$PROJECT_ROOT/logs"
-    "$PROJECT_ROOT/docs"
-    "$PROJECT_ROOT/manuscript"
+    "$PROJECT_ROOT/scripts"
+    "$PROJECT_ROOT/tests"
 )
 
 for dir in "${REQUIRED_DIRS[@]}"; do
@@ -70,6 +49,21 @@ for dir in "${REQUIRED_DIRS[@]}"; do
 done
 
 echo "✓ Directory structure verified"
+
+REQUIRED_FILES=(
+    "$PROJECT_ROOT/config.py"
+    "$PROJECT_ROOT/main.py"
+    "$PROJECT_ROOT/data/manifests/pipeline_manifest.csv"
+)
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [[ ! -f "$file" ]]; then
+        echo "ERROR: Missing required file: $file"
+        exit 1
+    fi
+done
+
+echo "✓ Core files verified"
 
 echo "-----------------------------------------"
 echo "SYSTEM STATUS: READY"

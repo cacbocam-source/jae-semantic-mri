@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jae-legacy-audit"
+version = "0.1.0"
+description = "Semantic MRI pipeline for the JAE Legacy Audit project: extraction, structured section export, embeddings, and route-level metrics."
+requires-python = ">=3.13"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "torch==2.10.0",
+    "transformers",
+    "PyMuPDF",
+    "pytesseract",
+    "pdf2image",
+]

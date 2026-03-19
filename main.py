@@ -19,13 +19,6 @@ def run_shell_check(script_relative_path: str) -> None:
     subprocess.run([str(script_path)], check=True)
 
 
-def _run_ingest() -> int:
-    from bins.s01_ingest import orchestrator
-
-    result = orchestrator.run()
-    return 0 if result is None else int(result)
-
-
 def _run_process() -> int:
     from bins.s02_processor import orchestrator
 
@@ -41,9 +34,8 @@ def _run_analyze() -> int:
 
 
 PHASE_DISPATCH: dict[str, tuple[str, Callable[[], int]]] = {
-    "ingest": ("Bin 01: Ingestion & Manifest Generation", _run_ingest),
-    "process": ("Bin 02: Semantic MRI & Vectorization", _run_process),
-    "analyze": ("Bin 03: Global Centroid & Friction Calculation", _run_analyze),
+    "process": ("Bin 02: Extraction, Cleaning, and Segmentation", _run_process),
+    "analyze": ("Bin 03: Structured Export, Embeddings, and Metrics", _run_analyze),
 }
 
 

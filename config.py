@@ -26,6 +26,11 @@ RAW_ROUTE_LEGACY = RAW_DIR / "Route_B_Legacy"
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
 STRUCTURED_DIR = BASE_DIR / "data" / "structured"
 MANIFEST_DIR = BASE_DIR / "data" / "manifests"
+
+# Temporary compatibility constant:
+# keep this until all legacy ledger imports are fully removed.
+MASTER_LEDGER = MANIFEST_DIR / "jae_master_ledger.csv"
+
 LOG_DIR = BASE_DIR / "logs"
 
 # Testing / Embeddings
@@ -40,7 +45,6 @@ EMBEDDINGS_DIR = BASE_DIR / "data" / "embeddings"
 EMBEDDINGS_ROUTE_MODERN = EMBEDDINGS_DIR / "Route_A_Modern"
 EMBEDDINGS_ROUTE_LEGACY = EMBEDDINGS_DIR / "Route_B_Legacy"
 
-MASTER_LEDGER = MANIFEST_DIR / "jae_master_ledger.csv"
 LOG_FILE = LOG_DIR / "system.log"
 
 # --- HARDWARE & COMPUTE (M3 MAX 64GB) ---
@@ -126,6 +130,7 @@ __all__ = [
     "PROCESSED_DIR",
     "STRUCTURED_DIR",
     "MANIFEST_DIR",
+    "MASTER_LEDGER",
     "LOG_DIR",
     "TESTING_DIR",
     "DOI_TEST_DIR",
@@ -136,7 +141,6 @@ __all__ = [
     "EMBEDDINGS_DIR",
     "EMBEDDINGS_ROUTE_MODERN",
     "EMBEDDINGS_ROUTE_LEGACY",
-    "MASTER_LEDGER",
     "LOG_FILE",
     "DEVICE",
     "MODEL_ID",

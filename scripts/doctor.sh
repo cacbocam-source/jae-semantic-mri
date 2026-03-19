@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+EXPECTED_PROJECT_ROOT="/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit"
 NVME_MOUNT="/Volumes/Clemons_Data"
-PROJECT_ROOT="$HOME/_Anchors/Research_Data/JAE_Legacy_Audit"
-EXPECTED_TARGET="/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit"
 
 PASS_COUNT=0
 WARN_COUNT=0
@@ -15,7 +16,7 @@ pass() {
 }
 
 warn() {
-    printf '[WARN_COUNT] %s\n' "$1"
+    printf '[WARN] %s\n' "$1"
     WARN_COUNT=$((WARN_COUNT + 1))
 }
 
@@ -46,39 +47,54 @@ else
     fail "NVMe is not mounted"
 fi
 
-if [[ -e "$PROJECT_ROOT" ]]; then
-    pass "Anchor path exists: $PROJECT_ROOT"
+if [[ -d "$PROJECT_ROOT" ]]; then
+    pass "Project root exists: $PROJECT_ROOT"
 else
-    fail "Anchor path missing: $PROJECT_ROOT"
+    fail "Project root missing: $PROJECT_ROOT"
 fi
 
-if [[ -L "$PROJECT_ROOT" ]]; then
-    pass "Anchor path is a symlink"
+if [[ "$PROJECT_ROOT" == "$EXPECTED_PROJECT_ROOT" ]]; then
+    pass "Project root resolves to expected NVMe path"
 else
-    fail "Anchor path is not a symlink"
-fi
-
-if [[ -L "$PROJECT_ROOT" ]]; then
-    TARGET="$(readlink "$PROJECT_ROOT")"
-    if [[ "$TARGET" == "$EXPECTED_TARGET" ]]; then
-        pass "Symlink target is correct"
-    else
-        fail "Symlink target mismatch: $TARGET"
-    fi
+    fail "Project root mismatch: $PROJECT_ROOT"
 fi
 
 for dir in \
     "$PROJECT_ROOT/bins" \
     "$PROJECT_ROOT/data" \
-    "$PROJECT_ROOT/logs" \
     "$PROJECT_ROOT/scripts" \
-    "$PROJECT_ROOT/docs" \
-    "$PROJECT_ROOT/manuscript"
+    "$PROJECT_ROOT/tests"
 do
     if [[ -d "$dir" ]]; then
         pass "Directory present: $dir"
     else
-        fail "Missing directory: $dir"
+        fail "Missing required directory: $dir"
+    fi
+done
+
+for dir in \
+    "$PROJECT_ROOT/docs" \
+    "$PROJECT_ROOT/logs" \
+    "$PROJECT_ROOT/manuscript"
+do
+    if [[ -d "$dir" ]]; then
+        pass "Optional directory present: $dir"
+    else
+        warn "Optional directory missing: $dir"
+    fi
+done
+
+section "Core Files"
+
+for file in \
+    "$PROJECT_ROOT/config.py" \
+    "$PROJECT_ROOT/main.py" \
+    "$PROJECT_ROOT/data/manifests/pipeline_manifest.csv"
+do
+    if [[ -f "$file" ]]; then
+        pass "File present: $file"
+    else
+        fail "Missing required file: $file"
     fi
 done
 
@@ -86,13 +102,9 @@ section "Python Runtime"
 
 if command -v python3 >/dev/null 2>&1; then
     pass "python3 found: $(command -v python3)"
+    pass "Python version: $(python3 --version 2>&1)"
 else
     fail "python3 not found in PATH"
-fi
-
-if command -v python3 >/dev/null 2>&1; then
-    PY_VERSION="$(python3 --version 2>&1)"
-    pass "Python version: $PY_VERSION"
 fi
 
 section "Disk Capacity"
@@ -135,7 +147,7 @@ else
     fail "Core Python package check failed"
 fi
 
-section "Phase 2 Extraction Package Checks"
+section "Extraction Package Checks"
 
 python3 - <<'PY'
 import importlib.util
@@ -161,9 +173,9 @@ PY
 EXTRACT_STATUS=$?
 
 if [[ "$EXTRACT_STATUS" -eq 0 ]]; then
-    pass "Phase 2 extraction package check passed"
+    pass "Extraction package check passed"
 else
-    fail "Phase 2 extraction package check failed"
+    fail "Extraction package check failed"
 fi
 
 section "OCR System Dependency Checks"
@@ -213,26 +225,6 @@ if [[ "$MPS_STATUS" -eq 0 ]]; then
     pass "PyTorch MPS diagnostic passed"
 else
     fail "PyTorch MPS diagnostic failed"
-fi
-
-section "Configuration Sanity"
-
-if [[ -f "$PROJECT_ROOT/config.py" ]]; then
-    pass "config.py present"
-else
-    fail "config.py missing"
-fi
-
-if [[ -f "$PROJECT_ROOT/main.py" ]]; then
-    pass "main.py present"
-else
-    fail "main.py missing"
-fi
-
-if [[ -f "$PROJECT_ROOT/data/manifests/jae_master_ledger.csv" ]]; then
-    pass "jae_master_ledger.csv present"
-else
-    warn "jae_master_ledger.csv not yet present"
 fi
 
 section "Summary"
