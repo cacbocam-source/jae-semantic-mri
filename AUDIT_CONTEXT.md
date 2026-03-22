@@ -1213,3 +1213,23 @@ Owner-controlled work:
 - Phase 6 readiness decisions
 
 This remains the official recovery model for preventing the project from expanding into an unbounded simultaneous scraper/engine/study workload.
+
+## 2026-03-22 — Pipeline Stabilization Audit Reference
+
+The Bin 02 → Bin 05 pipeline has been stabilized and validated for the
+1960–1969 legacy corpus.
+
+Key outcomes:
+- Structured export, embeddings, and metrics are fully operational
+- Embedding schema aligned with metrics contract
+- Metrics aggregation validated across two epochs (1960–1964, 1965–1969)
+- Cardinality invariant satisfied (149 structured / 149 embeddings)
+- Non-temporal artifacts excluded from pipeline
+
+A complete engineering record of the debugging process, root causes, file-level
+changes, and validation evidence is documented in:
+
+→ `DEBUGGING_AUDIT_2026-03-22.md`
+
+This file is the authoritative record of pipeline stabilization and should be
+consulted for any future refactoring, extension, or audit review.

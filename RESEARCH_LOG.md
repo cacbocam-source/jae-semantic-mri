@@ -894,3 +894,34 @@ A temporary bridge function (`_safe_infer_year`) is used to:
 This is a **transitional architecture** and will be removed when manifest-only year resolution is implemented upstream.
 
 ---
+
+## 2026-03-22 — Pipeline Stabilization and Metrics Validation
+
+Completed full stabilization of the JAE_Legacy_Audit pipeline for the
+1960–1969 corpus.
+
+Summary of work:
+- Resolved analyze-phase import failure
+- Implemented robust year inference across legacy and modern routes
+- Excluded non-temporal artifacts from processing
+- Repaired analysis orchestrator to correctly invoke embedding stage
+- Rebuilt embedding schema to match metrics contract
+- Corrected metrics aggregation over nested embedding directories
+- Resolved manifest eligibility issues for Phase 5 metrics
+
+Validation results:
+- Structured / embedding parity: 149 / 149
+- Metrics artifact loads successfully
+- Epoch aggregation correct:
+  - 1960–1964
+  - 1965–1969
+- Innovation velocity correctly computed (1 transition)
+
+All issues are documented in the debugging audit:
+
+→ `DEBUGGING_AUDIT_2026-03-22.md`
+
+System state at close:
+- Pipeline operational and reproducible
+- Metrics outputs validated
+- Ready for interpretive analysis phase
