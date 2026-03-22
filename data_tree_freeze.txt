@@ -1,0 +1,78 @@
+data
+├── .DS_Store
+├── embeddings
+│   ├── Route_A_Modern
+│   │   └── jae_90944b221a70.npz
+│   └── Route_B_Legacy
+├── manifests
+│   ├── jae_master_ledger.csv
+│   ├── legacy_filename_year_map.csv
+│   └── pipeline_manifest.csv
+├── metrics
+│   ├── Route_A_Modern
+│   │   └── metrics.npz
+│   └── Route_B_Legacy
+│       └── metrics.npz
+├── processed
+│   ├── Route_A_Modern
+│   │   └── 2026.txt
+│   └── Route_B_Legacy
+│       ├── 1960
+│       ├── 1961
+│       ├── 1962
+│       ├── 1963
+│       ├── 1964
+│       ├── 1965
+│       ├── 1966
+│       ├── 1967
+│       ├── 1968
+│       └── 1969
+├── raw
+│   ├── Route_A_Modern
+│   │   └── 2026.pdf
+│   └── Route_B_Legacy
+│       ├── 1960
+│       ├── 1961
+│       ├── 1962
+│       ├── 1963
+│       ├── 1964
+│       ├── 1965
+│       ├── 1966
+│       ├── 1967
+│       ├── 1968
+│       ├── 1969
+│       └── Vol1_1.pdf
+├── staging
+│   ├── legacy_prefill_downloads
+│   │   └── Route_B_Legacy
+│   ├── metadata_prefill
+│   │   ├── abstract_snapshots
+│   │   ├── legacy_metadata_prefill_1960_1969.csv
+│   │   └── legacy_metadata_prefill_1960_1969.jsonl
+│   └── scraper_beta
+│       ├── _staging
+│       ├── beta_scraper.log
+│       ├── Route_A_Modern
+│       └── Route_B_Legacy
+├── structured
+│   ├── Route_A_Modern
+│   │   └── 2026.json
+│   └── Route_B_Legacy
+│       ├── 1960
+│       ├── 1961
+│       ├── 1962
+│       ├── 1963
+│       ├── 1964
+│       ├── 1965
+│       ├── 1966
+│       ├── 1967
+│       ├── 1968
+│       └── 1969
+└── testing
+    └── doi_abstracts_2021_2026
+        ├── embeddings
+        ├── metrics
+        ├── raw
+        └── structured
+
+62 directories, 14 files
