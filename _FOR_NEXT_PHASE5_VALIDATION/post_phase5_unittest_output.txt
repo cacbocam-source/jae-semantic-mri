@@ -1,0 +1,8 @@
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+OK
+
+Artifact summary:
+{'corpus_name': 'JAE_Legacy_Audit', 'route_name': 'Route_B_Legacy', 'metric_version': '0.1.0', 'epoch_count': 1, 'first_epoch': '1960-1964', 'last_epoch': '1960-1964', 'total_section_embeddings': 2, 'source_embedding_file_count': 1, 'innovation_velocity_count': 0, 'is_singleton_epoch_route': True}

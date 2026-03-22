@@ -213,6 +213,39 @@ def get_pending_records(
     rows = load_manifest_rows(manifest_path)
     return [row for row in rows if row.get(stage, STATUS_PENDING) != STATUS_SUCCESS]
 
+def get_metric_eligible_records(
+    manifest_path: Path = PIPELINE_MANIFEST,
+) -> list[dict[str, str]]:
+    rows = get_pending_records("metrics_status", manifest_path=manifest_path)
+    return [
+        row
+        for row in rows
+        if row.get("embedding_status", STATUS_PENDING) == STATUS_SUCCESS
+    ]
+
+
+def mark_metrics_success(
+    doc_id: str,
+    manifest_path: Path = PIPELINE_MANIFEST,
+) -> None:
+    mark_stage_success(
+        doc_id,
+        "metrics_status",
+        manifest_path=manifest_path,
+    )
+
+
+def mark_metrics_failure(
+    doc_id: str,
+    error_message: str,
+    manifest_path: Path = PIPELINE_MANIFEST,
+) -> None:
+    mark_stage_failure(
+        doc_id,
+        "metrics_status",
+        error_message,
+        manifest_path=manifest_path,
+    )
 
 def seed_manifest_from_raw_pdfs(
     pdf_paths: Iterable[Path],

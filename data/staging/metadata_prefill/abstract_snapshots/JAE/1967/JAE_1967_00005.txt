@@ -1,0 +1,16 @@
+[METADATA_START]
+RECORD_ID: JAE_1967_00005
+ARTICLE_TITLE: Some Reflections Of A Retiring Teacher Educator
+DOI: 10.5032/jaatea.1967.02001
+JOURNAL: JAE
+YEAR: 1967
+ROUTE: Route_B_Legacy
+[METADATA_END]
+
+[ABSTRACT_START]
+Two circumstances have caused this contributor to do a little reminiscing in recent months.
+[ABSTRACT_END]
+
+[KEYWORDS_START]
+Psychology, Agricultural education, Mathematics education, Pedagogy, Medical education, Agriculture, Medicine, History, Archaeology
+[KEYWORDS_END]

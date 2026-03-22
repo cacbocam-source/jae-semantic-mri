@@ -25,6 +25,19 @@ VALID_ROUTES: Final[frozenset[str]] = frozenset({
 
 SECTION_NOT_FOUND: Final[str] = "SECTION_NOT_FOUND"
 
+EMBEDDING_BUNDLE_KEY_DOC_ID: Final[str] = "doc_id"
+EMBEDDING_BUNDLE_KEY_ROUTE: Final[str] = "route"
+EMBEDDING_BUNDLE_KEY_SECTION_LABELS: Final[str] = "section_labels"
+EMBEDDING_BUNDLE_KEY_EMBEDDINGS: Final[str] = "embeddings"
+EMBEDDING_BUNDLE_KEY_SOURCE_PATH: Final[str] = "source_path"
+
+EMBEDDING_BUNDLE_REQUIRED_KEYS: Final[frozenset[str]] = frozenset({
+    EMBEDDING_BUNDLE_KEY_DOC_ID,
+    EMBEDDING_BUNDLE_KEY_ROUTE,
+    EMBEDDING_BUNDLE_KEY_SECTION_LABELS,
+    EMBEDDING_BUNDLE_KEY_EMBEDDINGS,
+    EMBEDDING_BUNDLE_KEY_SOURCE_PATH,
+})
 
 @dataclass(frozen=True)
 class StructuredSections:

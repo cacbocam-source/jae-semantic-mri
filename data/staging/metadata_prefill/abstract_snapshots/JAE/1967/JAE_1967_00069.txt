@@ -1,0 +1,16 @@
+[METADATA_START]
+RECORD_ID: JAE_1967_00069
+ARTICLE_TITLE: And Revolutionary We Must Be
+DOI: 10.5032/jaatea.1967.02005
+JOURNAL: JAE
+YEAR: 1967
+ROUTE: Route_B_Legacy
+[METADATA_END]
+
+[ABSTRACT_START]
+If an Egyptian farmer of 5,000 years ago could have travelled through the time tunnel to Virginia in the year 1800 he would have found agricultural methods very similar to his own.Move him to a Midwest farm 100 years later and he still would have recognized most of the basic farming techniques. But, speed up his progress through time and bring him to a modernArizona farm or ranch today and he would be a baffled man.Very likely he would stand in awe of such agricultural magic as herbicides, giant machines, and computers.This Illustrates the sudden revolution that has molded our lives during this Century.Yet, when the facts are brought into sharp focus, you literally "haven't seen anything yet."The progress coming in the immediate future and beyond is enough to stagger the imagination.The last hundred years have seen agriculture revolutionized.
+[ABSTRACT_END]
+
+[KEYWORDS_START]
+Agricultural education, Mathematics education, Psychology, Pedagogy, Sociology, Agriculture, History, Archaeology
+[KEYWORDS_END]

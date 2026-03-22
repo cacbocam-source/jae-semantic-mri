@@ -1,0 +1,94 @@
+2026-03-20 09:39:14,707 [INFO] === BETA ACQUISITION RUN START ===
+2026-03-20 09:39:14,707 [INFO] BETA_MODE : True
+2026-03-20 09:39:14,707 [INFO] Output root: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta
+2026-03-20 09:39:14,718 [INFO] Manifest loaded: 16 total rows from /Users/cac0132/Manuscript-Extraction/beta_sample_manifest.csv
+2026-03-20 09:39:14,718 [INFO] 0 confirmed | 5 pending | 11 other
+2026-03-20 09:39:14,719 [WARNING] No samples with manual_review_status='confirmed'.  Nothing to do.
+Edit beta_sample_manifest.csv: set manual_review_status=confirmed for each sample you have verified and want to download.
+2026-03-20 09:42:06,905 [INFO] === BETA ACQUISITION RUN START ===
+2026-03-20 09:42:06,905 [INFO] BETA_MODE : True
+2026-03-20 09:42:06,905 [INFO] Output root: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta
+2026-03-20 09:42:06,908 [INFO] Manifest loaded: 16 total rows from /Users/cac0132/Manuscript-Extraction/beta_sample_manifest.csv
+2026-03-20 09:42:06,908 [INFO] 11 confirmed | 5 pending | 0 other
+2026-03-20 09:42:06,909 [INFO] Pre-flight: validating route assignments for 11 confirmed samples …
+2026-03-20 09:42:06,909 [INFO] Pre-flight passed: all route assignments are consistent.
+2026-03-20 09:42:06,909 [INFO] [SAMPLE_001] route=Route_A_Modern  year=2022  url=https://doi.org/10.5032/jae.2022.02131
+2026-03-20 09:42:06,992 [INFO] robots.txt unavailable for https://doi.org (<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1028)>) — assuming unrestricted
+2026-03-20 09:42:08,127 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/1968/1813
+2026-03-20 09:42:08,279 [INFO] robots.txt unavailable for https://jae-online.org (<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1028)>) — assuming unrestricted
+2026-03-20 09:42:09,519 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2022/10.5032_jae.2022.02131.pdf
+2026-03-20 09:42:09,536 [INFO]   [SAMPLE_001] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2022/10.5032_jae.2022.02131.pdf  (436593 bytes  sha256=dd3166ec9a77…)
+2026-03-20 09:42:09,537 [INFO] [SAMPLE_002] route=Route_A_Modern  year=2018  url=https://doi.org/10.5032/jae.2018.02255
+2026-03-20 09:42:10,962 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/2309/2154
+2026-03-20 09:42:12,115 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2018/10.5032_jae.2018.02255.pdf
+2026-03-20 09:42:12,131 [INFO]   [SAMPLE_002] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2018/10.5032_jae.2018.02255.pdf  (300660 bytes  sha256=5d9cb91df0b8…)
+2026-03-20 09:42:12,131 [INFO] [SAMPLE_003] route=Route_A_Modern  year=2012  url=https://doi.org/10.5032/jae.2012.04187
+2026-03-20 09:42:13,157 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/2272/2117
+2026-03-20 09:42:14,145 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2012/10.5032_jae.2012.04187.pdf
+2026-03-20 09:42:14,160 [INFO]   [SAMPLE_003] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2012/10.5032_jae.2012.04187.pdf  (127292 bytes  sha256=842b52e4f694…)
+2026-03-20 09:42:14,161 [INFO] [SAMPLE_004] route=Route_A_Modern  year=2007  url=https://doi.org/10.5032/jae.2007.03037
+2026-03-20 09:42:15,298 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/2035/1880
+2026-03-20 09:42:17,020 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2007/10.5032_jae.2007.03037.pdf
+2026-03-20 09:42:17,035 [INFO]   [SAMPLE_004] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2007/10.5032_jae.2007.03037.pdf  (169813 bytes  sha256=75a88d3eee06…)
+2026-03-20 09:42:17,036 [INFO] [SAMPLE_005] route=Route_A_Modern  year=2003  url=https://doi.org/10.5032/jae.2003.03047
+2026-03-20 09:42:18,088 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/1781/1626
+2026-03-20 09:42:19,385 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2003/10.5032_jae.2003.03047.pdf
+2026-03-20 09:42:19,402 [INFO]   [SAMPLE_005] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2003/10.5032_jae.2003.03047.pdf  (184963 bytes  sha256=7e2712667b5d…)
+2026-03-20 09:42:19,403 [INFO] [SAMPLE_006] route=Route_A_Modern  year=2001  url=https://doi.org/10.5032/jae.2001.01061
+2026-03-20 09:42:20,731 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/495/340
+2026-03-20 09:42:21,629 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2001/10.5032_jae.2001.01061.pdf
+2026-03-20 09:42:21,642 [INFO]   [SAMPLE_006] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2001/10.5032_jae.2001.01061.pdf  (196324 bytes  sha256=269a1aa18596…)
+2026-03-20 09:42:21,643 [INFO] [SAMPLE_007] route=Route_B_Legacy  year=1995  url=https://doi.org/10.5032/jae.1995.03001
+2026-03-20 09:42:23,461 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/2164/2009
+2026-03-20 09:42:25,686 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1995/10.5032_jae.1995.03001.pdf
+2026-03-20 09:42:25,698 [INFO]   [SAMPLE_007] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1995/10.5032_jae.1995.03001.pdf  (1364980 bytes  sha256=551a26b6770e…)
+2026-03-20 09:42:25,699 [INFO] [SAMPLE_011] route=Route_A_Modern  year=2000  url=https://doi.org/10.5032/jae.2000.02036
+2026-03-20 09:42:26,588 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/375/220
+2026-03-20 09:42:28,016 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2000/10.5032_jae.2000.02036.pdf
+2026-03-20 09:42:28,024 [INFO]   [SAMPLE_011] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2000/10.5032_jae.2000.02036.pdf  (896817 bytes  sha256=3976f8f433f0…)
+2026-03-20 09:42:28,024 [INFO] [SAMPLE_012] route=Route_B_Legacy  year=1999  url=https://doi.org/10.5032/jae.1999.03040
+2026-03-20 09:42:29,521 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/877/722
+2026-03-20 09:42:30,441 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1999/10.5032_jae.1999.03040.pdf
+2026-03-20 09:42:30,457 [INFO]   [SAMPLE_012] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1999/10.5032_jae.1999.03040.pdf  (209558 bytes  sha256=287158218304…)
+2026-03-20 09:42:30,458 [INFO] [SAMPLE_013] route=Route_A_Modern  year=2024  url=https://doi.org/10.5032/jae.v65i4.2828
+2026-03-20 09:42:32,218 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/2828/2369
+2026-03-20 09:42:33,201 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2024/10.5032_jae.v65i4.2828.pdf
+2026-03-20 09:42:33,220 [INFO]   [SAMPLE_013] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2024/10.5032_jae.v65i4.2828.pdf  (282603 bytes  sha256=0065c80dd34b…)
+2026-03-20 09:42:33,221 [INFO] [SAMPLE_015] route=Route_A_Modern  year=2013  url=https://doi.org/10.5032/jae.2013.04222
+2026-03-20 09:42:33,221 [INFO] Session rate cap (20 req/min) reached — waiting 34.3s.
+2026-03-20 09:43:08,871 [INFO]   PDF URL: https://jae-online.org/index.php/jae/article/download/324/169
+2026-03-20 09:43:10,062 [INFO]   Staged → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2013/10.5032_jae.2013.04222.pdf
+2026-03-20 09:43:10,075 [INFO]   [SAMPLE_015] OK → /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2013/10.5032_jae.2013.04222.pdf  (529166 bytes  sha256=94fae7175df4…)
+2026-03-20 09:43:10,082 [INFO] Manifest updated → /Users/cac0132/Manuscript-Extraction/beta_sample_manifest.csv
+2026-03-20 09:43:10,082 [INFO] === BETA ACQUISITION RUN COMPLETE: 11/11 succeeded ===
+2026-03-20 10:14:33,445 [INFO] === BETA ACQUISITION RUN START ===
+2026-03-20 10:14:33,446 [INFO] BETA_MODE : True
+2026-03-20 10:14:33,446 [INFO] Output root: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta
+2026-03-20 10:14:33,452 [INFO] Manifest loaded: 16 total rows from /Users/cac0132/Manuscript-Extraction/beta_sample_manifest.csv
+2026-03-20 10:14:33,453 [INFO] 11 confirmed | 5 pending | 0 other
+2026-03-20 10:14:33,454 [INFO] Pre-flight: validating route assignments for 11 confirmed samples …
+2026-03-20 10:14:33,454 [INFO] Pre-flight passed: all route assignments are consistent.
+2026-03-20 10:14:33,454 [INFO] [SAMPLE_001] route=Route_A_Modern  year=2022  url=https://doi.org/10.5032/jae.2022.02131
+2026-03-20 10:14:33,460 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2022/10.5032_jae.2022.02131.pdf (sha256=dd3166ec9a77…)
+2026-03-20 10:14:33,460 [INFO] [SAMPLE_002] route=Route_A_Modern  year=2018  url=https://doi.org/10.5032/jae.2018.02255
+2026-03-20 10:14:33,465 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2018/10.5032_jae.2018.02255.pdf (sha256=5d9cb91df0b8…)
+2026-03-20 10:14:33,465 [INFO] [SAMPLE_003] route=Route_A_Modern  year=2012  url=https://doi.org/10.5032/jae.2012.04187
+2026-03-20 10:14:33,470 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2012/10.5032_jae.2012.04187.pdf (sha256=842b52e4f694…)
+2026-03-20 10:14:33,470 [INFO] [SAMPLE_004] route=Route_A_Modern  year=2007  url=https://doi.org/10.5032/jae.2007.03037
+2026-03-20 10:14:33,473 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2007/10.5032_jae.2007.03037.pdf (sha256=75a88d3eee06…)
+2026-03-20 10:14:33,473 [INFO] [SAMPLE_005] route=Route_A_Modern  year=2003  url=https://doi.org/10.5032/jae.2003.03047
+2026-03-20 10:14:33,476 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2003/10.5032_jae.2003.03047.pdf (sha256=7e2712667b5d…)
+2026-03-20 10:14:33,476 [INFO] [SAMPLE_006] route=Route_A_Modern  year=2001  url=https://doi.org/10.5032/jae.2001.01061
+2026-03-20 10:14:33,479 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2001/10.5032_jae.2001.01061.pdf (sha256=269a1aa18596…)
+2026-03-20 10:14:33,479 [INFO] [SAMPLE_007] route=Route_B_Legacy  year=1995  url=https://doi.org/10.5032/jae.1995.03001
+2026-03-20 10:14:33,482 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1995/10.5032_jae.1995.03001.pdf (sha256=551a26b6770e…)
+2026-03-20 10:14:33,483 [INFO] [SAMPLE_011] route=Route_A_Modern  year=2000  url=https://doi.org/10.5032/jae.2000.02036
+2026-03-20 10:14:33,488 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2000/10.5032_jae.2000.02036.pdf (sha256=3976f8f433f0…)
+2026-03-20 10:14:33,488 [INFO] [SAMPLE_012] route=Route_B_Legacy  year=1999  url=https://doi.org/10.5032/jae.1999.03040
+2026-03-20 10:14:33,491 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_B_Legacy/1999/10.5032_jae.1999.03040.pdf (sha256=287158218304…)
+2026-03-20 10:14:33,491 [INFO] [SAMPLE_013] route=Route_A_Modern  year=2024  url=https://doi.org/10.5032/jae.v65i4.2828
+2026-03-20 10:14:33,496 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2024/10.5032_jae.v65i4.2828.pdf (sha256=0065c80dd34b…)
+2026-03-20 10:14:33,496 [INFO] [SAMPLE_015] route=Route_A_Modern  year=2013  url=https://doi.org/10.5032/jae.2013.04222
+2026-03-20 10:14:33,499 [INFO]   Already staged: /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit/data/staging/scraper_beta/Route_A_Modern/2013/10.5032_jae.2013.04222.pdf (sha256=94fae7175df4…)
+2026-03-20 10:14:33,503 [INFO] Manifest updated → /Users/cac0132/Manuscript-Extraction/beta_sample_manifest.csv
+2026-03-20 10:14:33,503 [INFO] === BETA ACQUISITION RUN COMPLETE: 11/11 succeeded ===

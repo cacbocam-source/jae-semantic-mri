@@ -1,11 +1,62 @@
 {
-  "version": "2.1",
-  "date": "2026-03-19",
+  "version": "2.3",
+  "date": "2026-03-20",
   "project_root": "/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit",
   "routes": [
     "Route_A_Modern",
     "Route_B_Legacy"
   ],
+  "existing_benchmark_raw_paths": {
+    "Route_A_Modern": "data/raw/Route_A_Modern/",
+    "Route_B_Legacy": "data/raw/Route_B_Legacy/"
+  },
+  "beta_pilot_raw_corpus_path_pattern": "data/raw_pdfs/{route}/{year}/{filename}.pdf",
+  "beta_manifest": {
+    "template_path": "data/manifests/beta_sample_manifest_template.csv",
+    "required_fields": [
+      "beta_batch_id",
+      "sample_id",
+      "route_target",
+      "sampling_bucket",
+      "risk_class",
+      "source_host",
+      "source_url",
+      "source_identifier",
+      "expected_filename",
+      "destination_stage_path",
+      "planned_year",
+      "expected_text_mode",
+      "pages_expected",
+      "inclusion_reason",
+      "manual_review_status",
+      "download_status",
+      "checksum_sha256",
+      "file_size_bytes",
+      "promotion_candidate",
+      "promotion_status",
+      "notes"
+    ],
+    "recommended_sampling_buckets": [
+      "modern_typical",
+      "legacy_typical",
+      "edge_case",
+      "random_audit"
+    ]
+  },
+  "year_resolution": {
+    "authoritative_source_when_available": "manifest_row.year",
+    "fallback_precedence": [
+      "explicit legacy filename map",
+      "supported filename parsing"
+    ],
+    "legacy_map_path": "data/manifests/legacy_filename_year_map.csv",
+    "supported_filename_patterns": [
+      "JAE_YYYY_NNNN.pdf",
+      "bare-year filenames such as YYYY.pdf",
+      "filenames containing exactly one valid standalone 4-digit year"
+    ],
+    "failure_mode": "raise error if year cannot be resolved deterministically"
+  },
   "structured_export": {
     "format": "json",
     "path_pattern": "data/structured/{route_name}/{doc_id}.json",
@@ -24,37 +75,11 @@
       "A_methods",
       "A_results"
     ],
-    "required_sections": [
-      "A_intro",
-      "A_methods",
-      "A_results"
-    ],
     "forbidden_fields_or_shapes": [
       "sections",
       "A_Intro",
       "A_Methods",
       "A_Results"
-    ],
-    "notes": [
-      "A_TAK is a segmentation-stage internal artifact and is not part of the structured export contract."
-    ]
-  },
-  "year_resolution": {
-    "authoritative_source_when_available": "manifest_row.year",
-    "fallback_precedence": [
-      "explicit legacy filename map",
-      "supported filename parsing"
-    ],
-    "legacy_map_path": "data/manifests/legacy_filename_year_map.csv",
-    "supported_filename_patterns": [
-      "JAE_YYYY_NNNN.pdf",
-      "bare-year filenames such as YYYY.pdf",
-      "filenames containing exactly one valid standalone 4-digit year"
-    ],
-    "failure_mode": "raise error if year cannot be resolved deterministically",
-    "notes": [
-      "Unsupported filenames must not silently guess a year.",
-      "Legacy exceptions belong in the explicit mapping CSV, not in hardcoded benchmark-only conditionals inside active export code."
     ]
   },
   "embedding_bundle": {
@@ -81,13 +106,6 @@
       "embedding_status",
       "metrics_status"
     ],
-    "required_minimum_semantics": [
-      "doc identity tracking",
-      "route tracking",
-      "year tracking",
-      "source-path tracking",
-      "error-state tracking"
-    ],
     "allowed_status_values": [
       "pending",
       "success",
@@ -101,20 +119,13 @@
     "granularity": "route",
     "output_path_pattern": "data/metrics/{route_name}/metrics.npz",
     "input_dependency": "validated Phase 4 embedding bundles",
-    "year_source": "manifest-row join",
-    "notes": [
-      "Metrics artifacts are route-level outputs, not document-level outputs.",
-      "metrics_status may be marked success only after successful artifact persistence."
-    ]
+    "year_source": "manifest-row join"
   },
-  "terminology": {
-    "preferred": [
-      "section embeddings",
-      "route-level metrics artifacts"
-    ],
-    "avoid": [
-      "manuscript vectors",
-      "document-level metrics artifacts"
-    ]
+  "phase6_readiness": {
+    "current_state": "descriptive only until multi-epoch route coverage exists",
+    "current_validated_route_epoch_counts": {
+      "Route_A_Modern": 1,
+      "Route_B_Legacy": 1
+    }
   }
 }

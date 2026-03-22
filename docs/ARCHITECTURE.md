@@ -2,81 +2,64 @@
 
 ## Semantic MRI of Agricultural Education Pipeline
 
-Author: Christopher Clemons
 Platform: Apple Silicon (M3 Max)
+Version: 2.2
+Date: 2026-03-20
+Status: Supplemental architecture reference aligned to the stabilized Phase 5 repo state and the active beta pilot epoch protocol
 
 ---
 
 # 1. Architectural Overview
 
-The pipeline implements a modular computational architecture designed for large-scale semantic analysis of historical research corpora.
+The repository implements a modular computational architecture for deterministic semantic analysis of historical agricultural education manuscripts.
 
-The system is structured around three primary operational phases:
+The implemented operational phases are:
+1. extraction and cleaning
+2. segmentation and structured export
+3. section embedding generation
+4. route-level vector metrics
 
-1. **Ingestion**
-2. **Processing (Vectorization)**
-3. **Analysis**
+A future Phase 6 statistical layer is anticipated but not yet implemented.
 
-All pipeline operations are orchestrated through a single entrypoint:
-
-```
-main.py
-```
-
-This design ensures that no internal module is executed directly.
+Acquisition is architecturally adjacent to the active analysis runtime surface, but the next-study intake boundary is now explicitly defined by the beta pilot protocol.
 
 ---
 
-# 2. Pipeline Flow
+# 2. Operational Root and Path Policy
 
-```
-User Command
-     │
-     ▼
-main.py (Root Orchestrator)
-     │
-     ├── Bin 01: Ingestion
-     │
-     ├── Bin 02: Processing
-     │
-     └── Bin 03: Analysis
-```
+The authoritative working root for this project is:
 
-Each bin contains an independent orchestrator module responsible for its operational domain.
-
----
-
-# 3. Storage Architecture
-
-The system uses a **dual-path storage model**.
-
-Logical project path:
-
-```
-~/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
-Physical storage location:
-
-```
+```text
 /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
 ```
 
-The logical path is implemented as a symbolic link pointing to the NVMe-backed physical storage location.
+Operational rule:
+- work from the NVMe path above
+- do not treat a home-directory mirror or anchor path as authoritative unless explicitly verified as the same resolved target
 
-This approach ensures:
+---
 
-* stable filesystem references
-* large dataset storage outside the system drive
-* portability of the compute environment
+# 3. Execution Model
+
+The repository contains a root orchestrator:
+
+```text
+main.py
+```
+
+Current active phases exposed there are:
+- `process`
+- `analyze`
+
+Legacy ingest rebuild orchestration is retired from the active surface.
+
+Direct stage-level execution is also used for deterministic validation and closeout where appropriate.
 
 ---
 
 # 4. Service Bin Architecture
 
-The pipeline is divided into modular "service bins".
-
-```
+```text
 bins/
 │
 ├── s01_ingest
@@ -85,136 +68,396 @@ bins/
 └── s04_utils
 ```
 
-Each bin is implemented as a Python package.
+Roles:
+- `s01_ingest` — legacy compatibility helpers only; active ingest rebuild orchestration has been retired/archived
+- `s02_processor` — extraction, OCR, cleaning, segmentation
+- `s03_analysis` — structured export, embedding generation, metrics
+- `s04_utils` — shared schemas, validators, artifact classes, manifest management, year resolution
 
-This architecture enables:
-
-* modular development
-* controlled imports
-* independent subsystem testing
+Architectural note:
+- the current operational path is manifest-driven
+- the active analysis pipeline does not rely on the retired legacy ledger rebuild orchestrator
 
 ---
 
-# 5. Data Lake Architecture
+# 5. Data Architecture
 
-All datasets are stored within the `data` directory.
+All persisted artifacts are stored under `data/`.
 
+Roles:
+- `raw/` — existing validated benchmark / production inputs
+- `raw_pdfs/` — active next-study beta pilot raw-manuscript intake organized by `route/year`
+- `processed/` — cleaned text intermediates
+- `structured/` — canonical structured JSON exports
+- `embeddings/` — validated section embedding bundles
+- `metrics/` — route-level metrics artifacts
+- `manifests/` — execution-tracking metadata and beta pilot control manifests
+- `testing/` — isolated non-production validation corpus
+
+Important distinction:
+- `raw/` remains part of the validated benchmark and stable analysis spine
+- `raw_pdfs/` is the next-study expansion layout for live manuscripts
+
+---
+
+# 6. Current Analysis-Layer Architecture
+
+## Phase 3 — Structured Export
+Primary files:
+- `bins/s03_analysis/section_export.py`
+- `bins/s03_analysis/orchestrator.py`
+
+Contract:
+- flattened top-level JSON export
+- canonical fields include `A_intro`, `A_methods`, and `A_results`
+- nested `sections` payloads are invalid current state
+- year resolution is delegated to `bins/s04_utils/year_resolution.py`
+
+## Phase 4 — Embedding Generation
+Primary file:
+- `bins/s03_analysis/embedder.py`
+
+## Phase 5 — Route-Level Metrics
+Primary file:
+- `bins/s03_analysis/metrics.py`
+
+Contract:
+- consumes validated Phase 4 embedding bundles
+- injects `year` through manifest-row join
+- writes route-level outputs to `data/metrics/<route_name>/metrics.npz`
+- advances `metrics_status` only after successful artifact persistence and validation
+
+---
+
+# 7. Beta Pilot Intake Architecture
+
+The active next-study intake rule is documented in `docs/BETA_PILOT_EPOCH_PROTOCOL.md`.
+
+Required raw-manuscript layout:
+
+```text
+data/raw_pdfs/<route>/<year>/<filename>.pdf
 ```
-data/
+
+Required pilot control manifest:
+- `data/manifests/beta_sample_manifest_template.csv`
+
+Operational rules:
+- one resolved route per manuscript
+- one resolved year per manuscript
+- unresolved/conflicting items are quarantined, not silently admitted
+- epoch assignment is derived later from year during analysis
+
+This is a beta study protocol, not yet a claim that full intake has been executed.
+
+---
+
+# 8. Shared Utility Architecture
+
+```text
+bins/s04_utils/
+├── artifacts.py
+├── manifest_manager.py
+├── schemas.py
+├── validators.py
+└── year_resolution.py
+```
+
+Responsibilities:
+- `schemas.py` — canonical constants and shared identifiers
+- `validators.py` — schema and payload validation helpers
+- `artifacts.py` — typed artifact boundaries
+- `manifest_manager.py` — stage-state tracking and manifest interactions
+- `year_resolution.py` — deterministic year resolution and legacy filename mapping support
+
+---
+
+# 9. Infrastructure Validation
+
+Active scripts include:
+- `scripts/startup_check.sh`
+- `scripts/doctor.sh`
+- `scripts/research_snapshot.sh`
+
+Validation goals:
+- verify the NVMe-backed working environment
+- validate core filesystem expectations
+- prevent execution under invalid infrastructure state
+- reduce drift between documentation, artifacts, and runtime assumptions
+
+---
+
+# 10. Current Status
+
+Implemented and complete:
+- extraction pipeline
+- structured export
+- section embedding generation
+- Phase 5 route-level metrics execution
+- deterministic year-resolution contract
+- post-Phase-5 validation hardening
+
+Defined and authorized next:
+- beta pilot epoch study using live manuscripts
+- corpus intake under canonical `route/year` organization
+- rerun of Phases 2–5 on expanded corpus
+
+Not yet implemented:
+- Phase 6 statistical inference
+
+# System Architecture
+
+## Semantic MRI of Agricultural Education Pipeline
+
+Platform: Apple Silicon (M3 Max)
+Version: 2.2
+Date: 2026-03-20
+Status: Supplemental architecture reference aligned to the stabilized Phase 5 repo state and the active beta pilot epoch protocol
+
+---
+
+# 1. Architectural Overview
+
+The repository implements a modular computational architecture for deterministic semantic analysis of historical agricultural education manuscripts.
+
+The implemented operational phases are:
+1. extraction and cleaning
+2. segmentation and structured export
+3. section embedding generation
+4. route-level vector metrics
+
+A future Phase 6 statistical layer is anticipated but not yet implemented.
+
+Acquisition is architecturally adjacent to the active analysis runtime surface, but the next-study intake boundary is now explicitly defined by the beta pilot protocol.
+
+---
+
+# 2. Operational Root and Path Policy
+
+The authoritative working root for this project is:
+
+```text
+/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
+```
+
+Operational rule:
+- work from the NVMe path above
+- do not treat a home-directory mirror or anchor path as authoritative unless explicitly verified as the same resolved target
+
+---
+
+# 3. Execution Model
+
+The repository contains a root orchestrator:
+
+```text
+main.py
+```
+
+Current active phases exposed there are:
+- `process`
+- `analyze`
+
+Legacy ingest rebuild orchestration is retired from the active surface.
+
+Direct stage-level execution is also used for deterministic validation and closeout where appropriate.
+
+---
+
+# 4. Service Bin Architecture
+
+```text
+bins/
 │
-├── raw
-│   ├── Route_A_Modern
-│   └── Route_B_Legacy
-│
-├── processed
-│
-└── manifests
+├── s01_ingest
+├── s02_processor
+├── s03_analysis
+└── s04_utils
 ```
 
-Raw data represents unmodified corpus sources.
+Roles:
+- `s01_ingest` — legacy compatibility helpers only; active ingest rebuild orchestration has been retired/archived
+- `s02_processor` — extraction, OCR, cleaning, segmentation
+- `s03_analysis` — structured export, embedding generation, metrics
+- `s04_utils` — shared schemas, validators, artifact classes, manifest management, year resolution
 
-Processed data contains cleaned or transformed intermediate representations.
-
-Manifests store dataset indexes and ledger records.
+Architectural note:
+- the current operational path is manifest-driven
+- the active analysis pipeline does not rely on the retired legacy ledger rebuild orchestrator
 
 ---
 
-# 6. Hardware Optimization
+# 5. Data Architecture
 
-The pipeline is optimized for Apple Silicon hardware.
+All persisted artifacts are stored under `data/`.
 
-Compute device:
+Roles:
+- `raw/` — active validated manuscript corpus and current live intake destination
+- `raw_pdfs/` — historical/protocol beta-planning path; not the active executed intake destination in the current live tree
+- `processed/` — cleaned text intermediates
+- `structured/` — canonical structured JSON exports
+- `embeddings/` — validated section embedding bundles
+- `metrics/` — route-level metrics artifacts
+- `manifests/` — execution-tracking metadata and beta pilot control manifests
+- `testing/` — isolated non-production validation corpus
 
-```
-Metal Performance Shaders (MPS)
-```
-
-Embedding model:
-
-```
-nomic-ai/nomic-embed-text-v1.5
-```
-
-Context window:
-
-```
-8192 tokens
-```
-
-Parallel worker count:
-
-```
-MAX_WORKERS = 8
-```
-
-Worker count was reduced from 14 to prevent unified-memory pressure on a 64GB system.
+Important distinction:
+- `raw/` remains part of the validated benchmark and stable analysis spine
+- `raw_pdfs/` is the next-study expansion layout for live manuscripts
 
 ---
 
-# 7. Infrastructure Validation
+# 6. Current Analysis-Layer Architecture
 
-Before execution, the pipeline runs a system validation script.
+## Phase 3 — Structured Export
+Primary files:
+- `bins/s03_analysis/section_export.py`
+- `bins/s03_analysis/orchestrator.py`
 
-```
-scripts/startup_check.sh
-```
+Contract:
+- flattened top-level JSON export
+- canonical fields include `A_intro`, `A_methods`, and `A_results`
+- nested `sections` payloads are invalid current state
+- year resolution is delegated to `bins/s04_utils/year_resolution.py`
 
-The script verifies:
+## Phase 4 — Embedding Generation
+Primary file:
+- `bins/s03_analysis/embedder.py`
 
-* NVMe drive mounted
-* anchor symlink integrity
-* directory structure completeness
+## Phase 5 — Route-Level Metrics
+Primary file:
+- `bins/s03_analysis/metrics.py`
 
-Pipeline execution is halted if validation fails.
-
----
-
-# 8. Root Configuration
-
-All system configuration values are defined in:
-
-```
-config.py
-```
-
-The project root is dynamically resolved using:
-
-```
-Path(__file__).resolve().parent
-```
-
-This removes hard-coded filesystem assumptions and improves portability.
+Contract:
+- consumes validated Phase 4 embedding bundles
+- injects `year` through manifest-row join
+- writes route-level outputs to `data/metrics/<route_name>/metrics.npz`
+- advances `metrics_status` only after successful artifact persistence and validation
 
 ---
 
-# 9. Command Interface
+# 7. Beta Pilot Intake Architecture
 
-The pipeline is executed via CLI commands.
+The active next-study intake rule is documented in `docs/BETA_PILOT_EPOCH_PROTOCOL.md`.
 
-Examples:
+Current executed raw-manuscript layout:
 
-```
-python3 main.py --phase ingest
-python3 main.py --phase process
-python3 main.py --phase analyze
+```text
+data/raw/<route>/<year>/<filename>.pdf
 ```
 
-Each command triggers the corresponding service bin.
+Historical note:
+- earlier pilot protocol documents referenced `data/raw_pdfs/<route>/<year>/<filename>.pdf`
+- the executed 1960–1969 legacy acquisition batch was promoted into `data/raw/`
+
+Required pilot control manifest:
+- `data/manifests/beta_sample_manifest_template.csv`
+
+Operational rules:
+- one resolved route per manuscript
+- one resolved year per manuscript
+- unresolved/conflicting items are quarantined, not silently admitted
+- epoch assignment is derived later from year during analysis
+
+This beta study protocol has now advanced into executed intake for the 1960–1969 legacy batch.
+
+Current live acquisition code location:
+
+```text
+legacy_acquisition/
+```
 
 ---
 
-# 10. Design Principles
+# 8. Shared Utility Architecture
 
-The architecture follows several guiding principles:
+```text
+bins/s04_utils/
+├── artifacts.py
+├── manifest_manager.py
+├── schemas.py
+├── validators.py
+└── year_resolution.py
+```
 
-* modular service boundaries
-* deterministic filesystem layout
-* hardware-aware computation
-* infrastructure validation before execution
-* reproducible computational environments
+Responsibilities:
+- `schemas.py` — canonical constants and shared identifiers
+- `validators.py` — schema and payload validation helpers
+- `artifacts.py` — typed artifact boundaries
+- `manifest_manager.py` — stage-state tracking and manifest interactions
+- `year_resolution.py` — deterministic year resolution and legacy filename mapping support
 
 ---
 
-# Status
+# 9. Infrastructure Validation
 
-Architecture Version: 1.0
+Active scripts include:
+- `scripts/startup_check.sh`
+- `scripts/doctor.sh`
+- `scripts/research_snapshot.sh`
+
+Validation goals:
+- verify the NVMe-backed working environment
+- validate core filesystem expectations
+- prevent execution under invalid infrastructure state
+- reduce drift between documentation, artifacts, and runtime assumptions
+
+---
+
+# 10. Current Status
+
+Implemented and complete:
+- extraction pipeline
+- structured export
+- section embedding generation
+- Phase 5 route-level metrics execution
+- deterministic year-resolution contract
+- post-Phase-5 validation hardening
+
+Defined and authorized next:
+- beta pilot epoch study using live manuscripts
+- corpus intake under canonical `route/year` organization
+- rerun of Phases 2–5 on expanded corpus
+
+Not yet implemented:
+- Phase 6 statistical inference
+
+
+---
+
+# 11. Legacy Acquisition Execution Update
+
+Executed and verified:
+- 149 legacy PDFs were downloaded and promoted for the 1960–1969 batch
+- promoted files now live under `data/raw/Route_B_Legacy/<year>/`
+- 149 rows were bridged into `data/manifests/pipeline_manifest.csv`
+
+Architectural implication:
+- the acquisition layer is now an active operational front end, not only a planned extension
+- the next architectural transition point is downstream processing of the expanded legacy corpus through the stabilized Phases 2–5
+
+---
+
+# HYBRID YEAR RESOLUTION LAYER (TRANSITIONAL)
+
+The system currently implements a temporary hybrid year resolution layer.
+
+Purpose:
+- support legacy corpus ingestion without fully normalized metadata
+
+Mechanism:
+- `_safe_infer_year(Path) -> int`
+- resolves year from:
+  - directory structure (legacy)
+  - filename (modern)
+
+Limitations:
+- relies on path structure rather than manifest authority
+- introduces coupling between filesystem layout and semantic metadata
+
+Future target state:
+- remove path-based inference entirely
+- enforce manifest-only year resolution
+- require all ingestion to pass through validated metadata layer
+
+---

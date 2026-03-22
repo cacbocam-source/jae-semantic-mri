@@ -1,331 +1,275 @@
-# Data Schema
+# BETA PILOT EPOCH PROTOCOL
 
-## Semantic MRI of Agricultural Education Pipeline
-
-Schema Version: 2.1  
-Date: 2026-03-19  
-Status: Supplemental schema reference aligned to implemented Phase 5 state
+Version: 1.1
+Date: 2026-03-20
+Status: Active beta pilot methodology for live-manuscript engine testing
 
 ---
 
-# 1. Scope
+## 1. Purpose
 
-This document defines the current documentation-facing data schema for the production pipeline.
+This protocol defines the beta pilot study for the JAE_Legacy_Audit project.
 
-Current implemented coverage:
-- corpus storage structure
-- structured export artifacts
-- deterministic year resolution
-- Phase 4 embedding bundles
-- manifest-driven execution tracking
-- Phase 5 route-level metrics artifacts
+This pilot is **not** designed to support validated inferential claims about historical semantic change. It is a **live-manuscript beta systems test** designed to verify that the engine functions correctly end-to-end on a controlled smaller corpus while larger ingestion continues.
 
-Current-state authority remains:
-- `AUDIT_CONTEXT.md` for operational status
-- `SCHEMA_CONTRACT.json` for machine-readable contract summary
+Primary objective:
+- verify engine correctness, contract integrity, and reproducible epoch behavior on live manuscripts
+
+Non-objective:
+- population-level inference
+- formal hypothesis testing
+- strong historical trend claims
 
 ---
 
-# 2. Operational Data Layout
+## 2. Canonical Corpus Organization
 
-All data paths are repo-relative and assumed to resolve under the NVMe project root.
+Active raw-manuscript storage rule:
 
 ```text
-data/
-│
-├── raw/
-│   ├── Route_A_Modern/
-│   └── Route_B_Legacy/
-│
-├── processed/
-│   ├── Route_A_Modern/
-│   └── Route_B_Legacy/
-│
-├── structured/
-│   ├── Route_A_Modern/
-│   └── Route_B_Legacy/
-│
-├── embeddings/
-│   ├── Route_A_Modern/
-│   └── Route_B_Legacy/
-│
-├── metrics/
-│   ├── Route_A_Modern/
-│   └── Route_B_Legacy/
-│
-├── manifests/
-│   ├── pipeline_manifest.csv
-│   └── legacy_filename_year_map.csv
-│
-└── testing/
-    └── doi_abstracts_2021_2026/
+data/raw_pdfs/<route>/<year>/<filename>.pdf
 ```
 
-Directory purposes:
-- `raw/` — source PDFs or equivalent corpus inputs
-- `processed/` — cleaned text intermediates
-- `structured/` — canonical structured JSON exports
-- `embeddings/` — validated Phase 4 embedding bundles
-- `metrics/` — route-level Phase 5 metrics artifacts
-- `manifests/` — execution tracking, temporal join metadata, and explicit legacy filename year mappings
-- `testing/` — isolated non-production validation corpus
+Examples:
 
----
+```text
+data/raw_pdfs/Route_A_Modern/2025/<file>.pdf
+data/raw_pdfs/Route_B_Legacy/1960/<file>.pdf
+```
 
-# 3. Routes
+Rules:
+- manuscripts are grouped by `route` and single resolved integer `year`
+- manuscripts are **not** stored by epoch folder
+- epoch assignment happens later during metrics processing
+- all active paths must resolve under the NVMe project root
 
-Canonical route names:
+Allowed route names:
 - `Route_A_Modern`
 - `Route_B_Legacy`
 
-Route semantics:
-- `Route_A_Modern` — modern manuscripts processed with modern-route segmentation logic
-- `Route_B_Legacy` — legacy manuscripts processed with legacy-route segmentation logic
+Project year bounds:
+- `1960` through `2026`
 
 ---
 
-# 4. Processed Text Outputs
+## 3. Intake Control Manifest
 
-Cleaned text outputs are stored under:
+Control template path:
 
 ```text
-data/processed/<route_name>/
+data/manifests/beta_sample_manifest_template.csv
 ```
 
-One cleaned text artifact is written per source manuscript.
+Required control fields include:
+- `beta_batch_id`
+- `sample_id`
+- `route_target`
+- `sampling_bucket`
+- `risk_class`
+- `source_host`
+- `source_url`
+- `source_identifier`
+- `expected_filename`
+- `destination_stage_path`
+- `planned_year`
+- `manual_review_status`
+- `download_status`
+- `promotion_candidate`
+- `promotion_status`
+- `notes`
 
-Role in pipeline:
-- intermediate output of extraction and cleaning
-- direct input to segmentation and structured export
-- not a final analysis artifact
+Operational rule:
+- no manuscript enters the active pilot corpus without an intake-control record
 
 ---
 
-# 5. Structured Export Schema
+## 4. Year Resolution Rule
 
-Structured JSON artifacts are stored under:
-
-```text
-data/structured/<route_name>/<doc_id>.json
-```
-
-Canonical required fields:
-- `doc_id`
-- `source_filename`
-- `source_pdf_path`
-- `route`
-- `year`
-- `extraction_method`
-- `page_count`
-- `raw_text_length`
-- `clean_text_length`
-- `segmentation_strategy`
-- `A_intro`
-- `A_methods`
-- `A_results`
-
-Section semantics:
-- `A_intro` — introduction section text
-- `A_methods` — methods section text
-- `A_results` — results section text
-
-Important exclusions:
-- `A_TAK` is not part of the structured export contract
-- nested `sections` payloads are not valid
-- mixed-case legacy keys such as `A_Intro`, `A_Methods`, and `A_Results` are not valid
-
----
-
-# 6. Year Resolution Contract
-
-Structured export year values must resolve deterministically.
-
-Resolution precedence:
-1. manifest `year` when available
-2. explicit legacy filename mapping from:
-   - `data/manifests/legacy_filename_year_map.csv`
+Year must be resolved using this precedence:
+1. explicit authoritative year / manifest year
+2. legacy year map
 3. supported filename parsing
-4. fail fast if unresolved
+4. fail and quarantine if unresolved
 
-Supported filename parsing currently includes:
-- `JAE_YYYY_NNNN.pdf`
-- bare-year filenames such as `2026.pdf`
-- filenames containing exactly one valid standalone 4-digit year in the configured year range
-
-Important rules:
-- unsupported filenames must not silently guess a year
-- legacy filename exceptions belong in the explicit mapping CSV, not as hardcoded conditionals inside active export code
-- manifest metadata remains authoritative when available
+Operational rules:
+- each manuscript must have exactly one resolved year
+- unresolved-year manuscripts do not enter the active pilot corpus
+- manifest year is the authoritative year used downstream
+- embedding bundles do not supply the authoritative year for Phase 5
 
 ---
 
-# 7. Embedding Bundle Schema
+## 5. Epoch Rule
 
-Phase 4 embedding bundles are stored under:
-
-```text
-data/embeddings/<route_name>/<doc_id>.npz
-```
-
-Canonical bundle fields:
-- `doc_id`
-- `route`
-- `section_labels`
-- `embeddings`
-- `source_path`
-
-Bundle semantics:
-- the artifact stores section embeddings, not a single manuscript-level vector
-- `section_labels` identifies which canonical sections were embedded
-- `embeddings` stores the aligned section embedding array
-- `source_path` records the originating structured artifact or source lineage used by the stage
-
-Important constraint:
-- `year` is not a bundle contract field for Phase 5 consumption
-- temporal metadata is joined later from the manifest
-
----
-
-# 8. Manifest Schema
-
-Operational manifest path:
-
-```text
-data/manifests/pipeline_manifest.csv
-```
-
-The manifest is the authoritative execution-tracking table for multi-stage runs.
-
-Minimum operational semantics:
-- one row per document
-- stable document identity
-- route assignment
-- publication year
-- stage-status tracking
-- source-path tracking
-- error-state tracking
-
-Stage status fields:
-- `extract_status`
-- `structured_status`
-- `embedding_status`
-- `metrics_status`
-
-Allowed status values:
-- `pending`
-- `success`
-- `failed`
-- `skipped`
-
-Important rules:
-- `year` for metrics grouping is injected via manifest-row join
-- `metrics_status` must not be marked `success` until route-level artifact persistence succeeds
-
-Explicit legacy year map path:
-
-```text
-data/manifests/legacy_filename_year_map.csv
-```
-
-This auxiliary CSV is not a replacement for the manifest. It exists only to support deterministic year resolution for legacy filenames when manifest metadata is not available at the call site.
-
----
-
-# 9. Phase 5 Metrics Artifact Contract
-
-Phase 5 metrics artifacts are stored under:
-
-```text
-data/metrics/<route_name>/metrics.npz
-```
-
-Granularity:
-- route-level
-- not document-level
-
-Contract semantics:
-- one artifact summarizes epoch-level metrics for one route
-- epoch grouping uses manifest year values
-- artifact creation consumes validated Phase 4 embedding bundles
-- artifact persistence must succeed before manifest success writeback
-
-Documentation-facing interpretation:
-- the artifact contains route-level epoch metrics and associated serialized arrays
-- downstream code should treat `MetricsArtifact` as the authoritative implementation boundary for the internal array layout
-
----
-
-# 10. Temporal Grouping Rules
-
-Temporal grouping uses deterministic 5-year epochs.
-
-Range:
-- 1960–2026
+Epochs are deterministic 5-year closed bins anchored at 1960.
 
 Examples:
-- 1960–1964
-- 1965–1969
-- 1970–1974
+- `1960 -> 1960-1964`
+- `1964 -> 1960-1964`
+- `1965 -> 1965-1969`
+- `2025 -> 2025-2029`
+- `2026 -> 2025-2029`
 
-Important rules:
-- epoch assignment for Phase 5 is based on manifest `year`
-- epoch assignment is not derived from embedding bundle contents
-- unsupported filenames must not silently determine epoch membership by guessing a year
-
----
-
-# 11. Testing Corpus Isolation
-
-Testing corpus location:
-
-```text
-data/testing/doi_abstracts_2021_2026/
-```
-
-The testing corpus is intentionally separate from the production manuscript corpus.
-
-Do not:
-- merge testing files into production route directories
-- treat testing metrics as production metrics
-- use testing artifacts as canonical production documentation examples unless explicitly labeled as testing
+Operational rule:
+- raw corpus organization is by year
+- analysis grouping is by derived epoch
 
 ---
 
-# 12. Data Integrity Rules
+## 6. Eligibility and Quarantine Criteria
 
-The pipeline enforces the following documentation-facing integrity rules:
-- each `doc_id` must be unique within the production corpus
-- every production artifact must map back to a manifest-tracked document
-- structured export must use flattened top-level section fields
-- year resolution must follow the documented precedence order
-- embedding bundles must match the validated Phase 4 schema
-- metrics artifacts must be route-level outputs
-- manifest stage state must reflect actual artifact persistence status
+### Inclusion criteria
+A manuscript is eligible for the beta pilot if it has:
+- a valid PDF
+- a resolvable route
+- a resolvable year
+- a unique `doc_id`
+- a source path under the NVMe project root
+- a valid manifest/control row
+
+### Quarantine criteria
+A manuscript must be excluded from the active pilot if any of the following apply:
+- route unresolved
+- year unresolved
+- year out of bounds
+- duplicate `doc_id`
+- duplicate source path with unresolved conflict
+- corrupted or unreadable PDF
+- manifest/path mismatch
+
+Excluded items must be logged, not silently dropped.
 
 ---
 
-# 13. Identifier Semantics
+## 7. Pilot Sampling Strategy
 
-`doc_id` is a stable pipeline-generated document identifier.
+This is a purposeful engineering sample, not a random inferential sample.
 
-Consumer rule:
-- treat `doc_id` as an opaque identifier
-- do not assume semantic fields can be safely parsed from the identifier string
-- use manifest metadata for year and route semantics rather than inferring them from file names when manifest data is available
+Target pilot characteristics:
+- both routes represented
+- multiple publication years if available
+- heterogeneous PDF characteristics
+- at least one route with more than one realized epoch if the live corpus allows it
+
+Recommended default beta design:
+- 16 total PDFs
+- 6 modern typical cases
+- 4 legacy typical cases
+- 4 high-risk / edge / deviant cases
+- 2 random audit cases
 
 ---
 
-# 14. Versioning Rule
+## 8. Workflow
 
-Any change to the documentation-facing contract for:
-- structured export fields
-- year-resolution precedence
-- legacy filename mapping rules
-- embedding bundle fields
-- manifest stage semantics
-- metrics artifact granularity or path semantics
+### Stage 0 — Intake staging
+1. collect live manuscript PDFs
+2. resolve route and year
+3. move files into canonical route/year layout
+4. seed or update control/manifest rows
 
-must update:
-- this file
-- `SCHEMA_CONTRACT.json`
-- any other affected canonical documentation
+### Stage 1 — Intake audit
+Generate a pre-pipeline summary containing:
+- manuscript count by route
+- manuscript count by year
+- manuscript count by prospective epoch
+- duplicate/conflict count
+- unresolved/quarantined count
+
+### Stage 2 — Pipeline execution
+Run the pilot corpus through:
+- extraction
+- structured section export
+- section embeddings
+- Phase 5 route-level metrics generation
+
+### Stage 3 — Post-Phase-5 validation
+Validate:
+- metrics artifact structure
+- route consistency
+- manifest consistency
+- deterministic epoch grouping
+- acceptance of valid singleton-epoch artifacts where applicable
+
+### Stage 4 — Pilot summary
+Produce a pilot closeout summary including:
+- manuscripts processed
+- manuscripts quarantined
+- route/year/epoch coverage
+- artifact validity outcomes
+- engine failures or manual interventions
+- recommendation for scale-up or further repair
+
+---
+
+## 9. Primary Outcomes
+
+Primary operational outcomes:
+1. ingestion success rate
+2. year resolution success rate
+3. manifest integrity rate
+4. Phase 2–5 completion rate on the pilot corpus
+5. route-level metrics artifact validation success
+6. realized epoch count by route
+
+Secondary operational outcomes:
+1. duplicate/conflict rate
+2. quarantine rate
+3. extraction failure rate
+4. embedding failure rate
+5. metrics failure rate
+6. manual intervention count
+
+---
+
+## 10. Success / Failure Criteria
+
+### Pilot success
+The pilot is successful if:
+- manuscripts are staged under canonical route/year organization
+- manifest/control rows are complete and valid
+- Phases 2–5 execute on the pilot corpus
+- route-level metrics artifacts are generated
+- post-Phase-5 validation passes
+- reruns are deterministic
+- logs and handoff docs can be updated
+
+### Pilot failure / hold
+The pilot remains incomplete if:
+- unresolved route/year conflicts persist
+- corpus placement is nondeterministic
+- post-Phase-5 validation fails
+- outputs require undocumented manual intervention
+- provenance or control records are incomplete
+
+---
+
+## 11. Phase 6 Gate
+
+The pilot may justify broader Phase 6 work only if live-manuscript ingestion expands route coverage enough to produce analytically meaningful multi-epoch route behavior.
+
+If routes remain singleton-epoch after pilot ingestion, Phase 6 should remain descriptive/readiness-oriented.
+
+---
+
+# YEAR DOMAIN AND VALIDATION RULES
+
+Valid year domain:
+- integer years between 1960 and 2026 (inclusive)
+
+Year sources:
+- Route_A_Modern → filename-derived
+- Route_B_Legacy → directory-derived
+
+Invalid cases:
+- files with no resolvable year (e.g., `Vol1_1.pdf`)
+
+Handling rules:
+- invalid-year documents are excluded prior to manifest seeding
+- sentinel values (e.g., -1) are not persisted in schema artifacts
+- all downstream artifacts must contain valid year assignments
+
+Schema invariant:
+- every document participating in metrics must resolve to exactly one valid year
+
+---

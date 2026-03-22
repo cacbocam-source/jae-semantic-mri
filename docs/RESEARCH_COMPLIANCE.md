@@ -1,145 +1,339 @@
-1. Research Compliance Note
-project purpose
-data sources
-access permissions
-API policies followed
-rate limits used
+# Research Compliance
 
-2. Network Safety Settings
-When you eventually build acquisition scripts, include:
+Version: 2.2
+Date: 2026-03-20
+Status: Supplemental compliance reference aligned to the stabilized Phase 5 state and the active beta pilot epoch protocol
+
+---
+
+# 1. Purpose
+
+Core priorities:
+- lawful data access
+- respect for publisher and repository terms
+- conservative network behavior
+- reproducible processing
+- auditable artifact generation
+- clear separation of benchmark corpus, beta pilot corpus, and testing corpora
+
+---
+
+# 2. Current Operational Scope
+
+Current implemented workflow covers:
+- local corpus processing
+- extraction and cleaning
+- segmentation and structured export
+- section embedding generation
+- route-level metrics computation
+
+Defined and authorized next:
+- beta pilot live-manuscript intake under `data/raw_pdfs/<route>/<year>/`
+- manifest/audit validation of new manuscripts
+- rerun of Phases 2–5 on expanded corpus
+
+No new compliance boundary was introduced by cleanup or metrics hardening. The beta pilot protocol adds explicit intake controls but does not change the underlying need for lawful access and conservative retrieval behavior.
+
+---
+
+# 3. Lawful Data Access
+
+Before processing any new document source, confirm:
+- the source is legally accessible
+- access complies with publisher or repository policy
+- no paywall protections are bypassed
+- institutional subscription access is respected where applicable
+
+---
+
+# 4. Corpus Usage Boundaries
+
+The corpus is used for computational analysis only.
+
+Restrictions:
+- do not redistribute publisher PDFs
+- do not republish extracted full texts as corpus outputs
+- do not use the corpus to train commercial AI systems
+- publish analytical results, not redistributed source content
+
+This rule applies equally to pilot-acquired files and the validated benchmark corpus.
+
+---
+
+# 5. Benchmark vs Beta vs Testing Separation
+
+These domains must remain distinct.
+
+## Existing validated benchmark corpus
+- `data/raw/`
+- current validated production-like benchmark artifacts under `processed/`, `structured/`, `embeddings/`, and `metrics/`
+
+## Beta pilot live-manuscript corpus
+- `data/raw_pdfs/<route>/<year>/...`
+
+## Testing corpus
+- `data/testing/doi_abstracts_2021_2026/`
+
+Compliance rules:
+- beta pilot files must not be silently merged into the benchmark corpus
+- testing artifacts must not be silently promoted into production-like analysis state
+- pilot intake decisions must be auditable
+
+---
+
+# 6. Beta Pilot Safeguards
+
+Required beta safeguards:
+- controlled smaller corpus, not broad uncontrolled scrape
+- explicit pilot protocol
+- route/year intake rules
+- provenance capture for each file
+- no hidden fallback output paths
+- stop on mismatch or uncertainty
+- quarantine unresolved items rather than silently admitting them
+
+Beta pilot should not be represented as inferential historical evidence by itself.
+
+---
+
+# 7. Provenance Expectations
+
+Where source metadata is available, track:
+- source URL
+- publisher / host
+- DOI
+- source identifier
+- acquisition batch identifier
+- resolved route
+- resolved year
+- destination path
+- quarantine or acceptance status
+
+For pilot intake, provenance must be logged before the manuscript is treated as part of the active pilot corpus.
+
+---
+
+# 8. Network Use Safeguards
+
+If automated acquisition is implemented or expanded, include:
+- request rate limiting
+- retry limits
+- exponential backoff
+- randomized delay behavior where appropriate
+- API identification headers where required
+- contact information in user-agent metadata where appropriate
+
+Conservative target request rate:
+- 1–2 requests per second maximum
+
+Illustrative settings:
+
+```python
 MAX_REQUESTS_PER_SECOND = 2
 REQUEST_BACKOFF = True
 RETRY_LIMIT = 3
+```
 
+---
 
-3. Corpus Usage Policy
+# 9. System Integrity Expectations
 
-Document internally:
-The corpus is used only for computational analysis.
-No publisher content will be redistributed.
+Before integrating new modules or changing stage contracts, verify:
+- deterministic behavior is preserved
+- benchmark/regression coverage remains valid
+- new code does not bypass manifest tracking
+- schema and artifact boundaries remain explicit
+- documentation reflects implemented code state rather than scaffold or plan state
+- beta pilot intake remains isolated, deterministic, and auditable
 
-4. In your ledger track:
-doi
-publisher
-source_url
-license_type
+# Research Compliance
 
-This strengthens provenance tracking.
+Version: 2.2
+Date: 2026-03-20
+Status: Supplemental compliance reference aligned to the stabilized Phase 5 state and the active beta pilot epoch protocol
 
-## Research Transparency Development Checklist
+---
 
-This checklist must be reviewed before implementing any new module,
-automation component, or corpus acquisition process.
+# 1. Purpose
 
-The purpose is to ensure that all system development maintains the
-highest academic research standards and complies with publisher,
-API, and institutional network policies.
+Core priorities:
+- lawful data access
+- respect for publisher and repository terms
+- conservative network behavior
+- reproducible processing
+- auditable artifact generation
+- clear separation of benchmark corpus, beta pilot corpus, and testing corpora
 
-------------------------------------------------------------
+---
 
-### 1. Lawful Data Access
+# 2. Current Operational Scope
 
-Before processing any new document source confirm:
+Current implemented workflow covers:
+- local corpus processing
+- extraction and cleaning
+- segmentation and structured export
+- section embedding generation
+- route-level metrics computation
 
-□ The document source is legally accessible.
-□ Access complies with publisher or repository policies.
-□ No paywall protections are bypassed.
-□ Institutional subscription access is respected.
+Defined and now partially executed:
+- live-manuscript intake under `data/raw/<route>/<year>/`
+- manifest/audit validation of new manuscripts
+- rerun of Phases 2–5 on expanded corpus
 
-If uncertain, consult the university library or research compliance office.
+No new compliance boundary was introduced by cleanup or metrics hardening. The beta pilot protocol adds explicit intake controls but does not change the underlying need for lawful access and conservative retrieval behavior.
 
-------------------------------------------------------------
+---
 
-### 2. Publisher and API Compliance
+# 3. Lawful Data Access
 
-Before implementing any automated data acquisition:
+Before processing any new document source, confirm:
+- the source is legally accessible
+- access complies with publisher or repository policy
+- no paywall protections are bypassed
+- institutional subscription access is respected where applicable
 
-□ The API terms of service have been reviewed.
-□ Request rates are within recommended limits.
-□ API identification headers are included.
-□ Contact email is provided in User-Agent.
+---
 
-Example:
+# 4. Corpus Usage Boundaries
 
-User-Agent: JAE-Legacy-Audit-Research/1.0
-Contact: your.email@university.edu
-
-------------------------------------------------------------
-
-### 3. Network Safety
-
-All automated acquisition must include safeguards.
-
-Required protections:
-
-□ Request rate limiting implemented.
-□ Retry limits implemented.
-□ Exponential backoff enabled.
-□ Randomized delays between requests.
-
-Target request rate:
-
-1–2 requests per second maximum.
-
-This prevents denial-of-service behavior and protects institutional networks.
-
-------------------------------------------------------------
-
-### 4. Corpus Usage Boundaries
-
-The corpus is used exclusively for computational research.
+The corpus is used for computational analysis only.
 
 Restrictions:
+- do not redistribute publisher PDFs
+- do not republish extracted full texts as corpus outputs
+- do not use the corpus to train commercial AI systems
+- publish analytical results, not redistributed source content
 
-□ No redistribution of publisher PDFs.
-□ No republishing of extracted full texts.
-□ No use of corpus to train commercial AI systems.
-□ Only analytical results will be published.
+This rule applies equally to pilot-acquired files and the validated benchmark corpus.
 
-------------------------------------------------------------
+---
 
-### 5. Reproducibility and Auditability
+# 5. Benchmark vs Beta vs Testing Separation
 
-All processing must be traceable.
+These domains must remain distinct.
 
-Verify:
+## Existing validated benchmark corpus
+- `data/raw/`
+- current validated production-like benchmark artifacts under `processed/`, `structured/`, `embeddings/`, and `metrics/`
 
-□ Source PDF recorded in ledger.
-□ Extraction method recorded.
-□ Processing timestamp recorded.
-□ Generated artifacts stored in processed corpus directory.
-□ System changes recorded in docs/audit.md.
+## Current live intake / promoted corpus
+- `data/raw/<route>/<year>/...`
 
-------------------------------------------------------------
+Historical note:
+- earlier beta-planning documents referenced `data/raw_pdfs/<route>/<year>/...`
+- the executed 1960–1969 legacy batch was intentionally promoted into `data/raw/Route_B_Legacy/` and bridged into the live pipeline manifest
 
-### 6. System Integrity
+## Testing corpus
+- `data/testing/doi_abstracts_2021_2026/`
 
-Before integrating new modules confirm:
+Compliance rules:
+- beta pilot files must not be silently merged into the benchmark corpus
+- testing artifacts must not be silently promoted into production-like analysis state
+- pilot intake decisions must be auditable
 
-□ Code passes benchmark diagnostics.
-□ Processing pipeline remains deterministic.
-□ New module does not bypass the ledger system.
-□ New module integrates with existing architecture.
+---
 
-------------------------------------------------------------
+# 6. Beta Pilot Safeguards
 
-### 7. Institutional Compliance
+Required beta safeguards:
+- controlled smaller corpus, not broad uncontrolled scrape
+- explicit pilot protocol
+- route/year intake rules
+- provenance capture for each file
+- no hidden fallback output paths
+- stop on mismatch or uncertainty
+- quarantine unresolved items rather than silently admitting them
 
-If uncertainty exists regarding network usage, licensing,
-or data access policies, consult:
+Beta pilot should not be represented as inferential historical evidence by itself.
 
-• University Library Scholarly Communications
-• Institutional Research Compliance Office
-• University IT Network Policy Documentation
+---
 
-------------------------------------------------------------
+# 7. Provenance Expectations
 
-### Final Principle
+Where source metadata is available, track:
+- source URL
+- publisher / host
+- DOI
+- source identifier
+- acquisition batch identifier
+- resolved route
+- resolved year
+- destination path
+- quarantine or acceptance status
 
-This project prioritizes:
+For pilot intake, provenance must be logged before the manuscript is treated as part of the active pilot corpus.
 
-• research transparency
-• ethical data handling
-• reproducibility
-• respect for publisher infrastructure
-• compliance with institutional policies
+---
+
+# 8. Network Use Safeguards
+
+If automated acquisition is implemented or expanded, include:
+- request rate limiting
+- retry limits
+- exponential backoff
+- randomized delay behavior where appropriate
+- API identification headers where required
+- contact information in user-agent metadata where appropriate
+
+Conservative target request rate:
+- 1–2 requests per second maximum
+
+Illustrative settings:
+
+```python
+MAX_REQUESTS_PER_SECOND = 2
+REQUEST_BACKOFF = True
+RETRY_LIMIT = 3
+```
+
+---
+
+# 9. System Integrity Expectations
+
+Before integrating new modules or changing stage contracts, verify:
+- deterministic behavior is preserved
+- benchmark/regression coverage remains valid
+- new code does not bypass manifest tracking
+- schema and artifact boundaries remain explicit
+- documentation reflects implemented code state rather than scaffold or plan state
+- beta pilot intake remains isolated, deterministic, and auditable
+
+
+---
+
+# 10. Legacy Batch Execution Note
+
+The 1960–1969 legacy acquisition batch has now been executed under the live intake workflow.
+
+Verified result:
+- 149 legacy PDFs promoted into `data/raw/Route_B_Legacy/<year>/`
+- 149 rows bridged into `data/manifests/pipeline_manifest.csv`
+
+Compliance implication:
+- this batch is no longer merely a protocol/planning example
+- provenance and promotion decisions must continue to remain auditable at row level
+
+---
+
+# DATA EXCLUSION AND METRIC INTEGRITY
+
+The pipeline enforces exclusion of documents that do not resolve to valid temporal metadata.
+
+Example:
+- `Vol1_1.pdf` (no year information)
+
+Compliance rationale:
+- inclusion would corrupt longitudinal analysis
+- violates reproducibility and interpretability constraints
+
+Operational rule:
+- such documents are skipped prior to processing
+- exclusion is logged
+- no derived artifacts are produced for excluded files
+
+This ensures:
+- consistent temporal indexing
+- valid metric aggregation
+- reproducible analytical outputs
+
+---

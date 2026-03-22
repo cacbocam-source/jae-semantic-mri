@@ -6,6 +6,29 @@ from config import PROCESSED_DIR, RAW_DIR
 from bins.s02_processor.smart_extract import smart_extract_pdf
 
 
+def _safe_infer_year(path: Path) -> int:
+    """
+    Robust year inference supporting:
+    1. Folder-based legacy: .../<YEAR>/<file>.pdf
+    2. Filename-based modern: .../2026.pdf
+
+    Returns:
+        int year OR -1 if not resolvable (e.g., Vol1_1.pdf)
+    """
+    # Case 1 — folder-based
+    for part in path.parts:
+        if part.isdigit() and len(part) == 4:
+            return int(part)
+
+    # Case 2 — filename-based
+    stem = path.stem
+    if stem.isdigit() and len(stem) == 4:
+        return int(stem)
+
+    # Case 3 — unresolved
+    return -1
+
+
 def process_single_pdf(pdf_path: Path) -> None:
     """
     Process a single PDF through the smart extraction pipeline and save output.
@@ -30,12 +53,29 @@ def run() -> None:
     """
     Run Phase 2 processing over all PDFs in the raw corpus.
     """
-    pdf_files = sorted(RAW_DIR.rglob("*.pdf"))
+    all_pdf_files = sorted(RAW_DIR.rglob("*.pdf"))
 
-    if not pdf_files:
+    if not all_pdf_files:
         print("[PROCESS] No PDF files found.")
         return
 
+    # --- FILTER: enforce temporal validity ---
+    pdf_files: list[Path] = []
+    skipped: list[Path] = []
+
+    for p in all_pdf_files:
+        year = _safe_infer_year(p)
+        if year == -1:
+            skipped.append(p)
+        else:
+            pdf_files.append(p)
+
+    if skipped:
+        print(f"[PROCESS] Skipping {len(skipped)} non-temporal files:")
+        for s in skipped:
+            print(f"  - {s}")
+
+    # --- PROCESS ONLY VALID FILES ---
     for pdf_path in pdf_files:
         process_single_pdf(pdf_path)
 

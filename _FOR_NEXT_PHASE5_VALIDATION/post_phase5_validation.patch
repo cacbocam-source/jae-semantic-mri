@@ -1,0 +1,571 @@
+--- bins/s03_analysis/metrics.py
++++ bins/s03_analysis/metrics.py
+@@ -25,6 +25,21 @@
+ EMBEDDING_DIM = 768
+ EPOCH_WIDTH = 5
+ METRIC_VERSION = "0.1.0"
++METRICS_ARTIFACT_REQUIRED_KEYS = frozenset(
++    {
++        "corpus_name",
++        "route_name",
++        "epoch_labels",
++        "epoch_counts",
++        "epoch_centroids",
++        "semantic_dispersion",
++        "innovation_velocity",
++        "source_embedding_files",
++        "created_at_utc",
++        "metric_version",
++    }
++)
++CORPUS_NAME = "JAE_Legacy_Audit"
+ 
+ 
+ @dataclass(slots=True)
+@@ -36,6 +51,7 @@
+     section_label: str
+     route: str
+ 
++
+ def _row_get(row: Any, field: str) -> str:
+     if isinstance(row, dict):
+         value = row.get(field, "")
+@@ -51,6 +67,41 @@
+ def _row_route(row: Any) -> str:
+     return _row_get(row, "route").strip()
+ 
++
++def _parse_scalar_text(value: Any, *, field_name: str) -> str:
++    array_value = np.asarray(value)
++    if array_value.shape != ():
++        raise ValueError(f"{field_name} must be scalar, got shape {array_value.shape}")
++
++    text = str(array_value.item()).strip()
++    if not text:
++        raise ValueError(f"{field_name} must not be empty")
++
++    return text
++
++
++def _parse_epoch_label_start(label: str) -> int:
++    parts = label.split("-")
++    if len(parts) != 2:
++        raise ValueError(f"Invalid epoch label format: {label!r}")
++
++    try:
++        start = int(parts[0])
++        end = int(parts[1])
++    except ValueError as exc:
++        raise ValueError(f"Epoch label must contain integer bounds: {label!r}") from exc
++
++    if end < start:
++        raise ValueError(f"Epoch label end precedes start: {label!r}")
++
++    if (end - start + 1) != EPOCH_WIDTH:
++        raise ValueError(
++            f"Epoch label width must equal {EPOCH_WIDTH}, got {label!r}"
++        )
++
++    return start
++
++
+ def load_embedding_bundle(bundle_path: Path) -> dict[str, Any]:
+     if not bundle_path.exists():
+         raise FileNotFoundError(f"Embedding bundle not found: {bundle_path}")
+@@ -80,6 +131,13 @@
+     if source_path.shape != ():
+         raise ValueError(f"source_path must be scalar, got shape {source_path.shape}")
+ 
++    if not str(doc_id.item()).strip():
++        raise ValueError("doc_id must not be empty")
++    if not str(route.item()).strip():
++        raise ValueError("route must not be empty")
++    if not str(source_path.item()).strip():
++        raise ValueError("source_path must not be empty")
++
+     if section_labels.ndim != 1:
+         raise ValueError("section_labels must be a 1D array")
+ 
+@@ -101,6 +159,14 @@
+ 
+     if len(section_labels) != embeddings.shape[0]:
+         raise ValueError("section_labels length must match embeddings row count")
++
++    normalized_labels = [str(label).strip() for label in section_labels.tolist()]
++    if any(not label for label in normalized_labels):
++        raise ValueError("section_labels must not contain empty values")
++
++    if not np.isfinite(embeddings).all():
++        raise ValueError("embeddings must contain only finite values")
++
+ 
+ def extract_metric_records(
+     bundle: dict[str, Any],
+@@ -142,18 +208,31 @@
+ 
+     return records
+ 
++
+ def extract_metric_records_from_manifest_row(
+     bundle: dict[str, Any],
+     manifest_row: dict[str, str],
+     *,
+     source_file: str,
+ ) -> list[MetricRecord]:
++    validate_embedding_bundle(bundle)
++
+     doc_id = str(np.asarray(bundle[EMBEDDING_BUNDLE_KEY_DOC_ID]).item())
+     manifest_doc_id = _row_get(manifest_row, "doc_id").strip()
+ 
+     if manifest_doc_id != doc_id:
+         raise ValueError(
+             f"Manifest row doc_id mismatch: bundle={doc_id}, manifest={manifest_doc_id}"
++        )
++
++    bundle_route = str(np.asarray(bundle[EMBEDDING_BUNDLE_KEY_ROUTE]).item()).strip()
++    manifest_route = _row_get(manifest_row, "route").strip()
++    if not manifest_route:
++        raise ValueError(f"Manifest row missing route for doc_id={doc_id}")
++
++    if bundle_route != manifest_route:
++        raise ValueError(
++            f"Manifest row route mismatch: bundle={bundle_route}, manifest={manifest_route}, doc_id={doc_id}"
+         )
+ 
+     year_raw = _row_get(manifest_row, "year").strip()
+@@ -172,6 +251,7 @@
+         year=year,
+         source_file=source_file,
+     )
++
+ 
+ def assign_epoch(year: int, width: int = EPOCH_WIDTH) -> tuple[int, int]:
+     """
+@@ -298,7 +378,30 @@
+     metrics["metric_version"] = METRIC_VERSION
+     return metrics
+ 
+-CORPUS_NAME = "JAE_Legacy_Audit"
++
++def validate_records_for_route(records: list[MetricRecord], *, route_name: str) -> None:
++    if not records:
++        raise ValueError("MetricRecord collection must not be empty")
++
++    observed_routes = sorted({record.route for record in records})
++    if observed_routes != [route_name]:
++        raise ValueError(
++            f"MetricRecord route mismatch: expected={route_name}, observed={observed_routes}"
++        )
++
++    for record in records:
++        if record.vector.shape != (EMBEDDING_DIM,):
++            raise ValueError(
++                f"MetricRecord vector shape mismatch for doc_id={record.doc_id}: {record.vector.shape}"
++            )
++        if not np.isfinite(record.vector).all():
++            raise ValueError(
++                f"MetricRecord vector contains non-finite values for doc_id={record.doc_id}"
++            )
++        if not record.section_label.strip():
++            raise ValueError(f"MetricRecord section_label missing for doc_id={record.doc_id}")
++        if not record.source_file.strip():
++            raise ValueError(f"MetricRecord source_file missing for doc_id={record.doc_id}")
+ 
+ 
+ def build_metrics_artifact(
+@@ -307,6 +410,8 @@
+     route_name: str,
+     corpus_name: str = CORPUS_NAME,
+ ) -> MetricsArtifact:
++    validate_records_for_route(records, route_name=route_name)
++
+     payload = build_metrics_payload(records)
+     epoch_labels = payload["epoch_labels"]
+ 
+@@ -324,7 +429,7 @@
+         dtype=np.float32,
+     )
+ 
+-    return MetricsArtifact(
++    artifact = MetricsArtifact(
+         corpus_name=corpus_name,
+         route_name=route_name,
+         epoch_labels=list(epoch_labels),
+@@ -337,6 +442,10 @@
+         metric_version=METRIC_VERSION,
+     )
+ 
++    validate_metrics_artifact_instance(artifact, expected_route_name=route_name)
++    return artifact
++
++
+ def build_metrics_output_path(route_name: str) -> Path:
+     return Path("data/metrics") / route_name / "metrics.npz"
+ 
+@@ -345,6 +454,7 @@
+     output_dir = Path("data/metrics") / route_name
+     output_dir.mkdir(parents=True, exist_ok=True)
+     return output_dir
++
+ 
+ def write_metrics_artifact(artifact: MetricsArtifact, output_path: Path) -> None:
+     output_path.parent.mkdir(parents=True, exist_ok=True)
+@@ -367,6 +477,182 @@
+         raise FileNotFoundError(f"Metrics artifact write failed: {output_path}")
+ 
+ 
++def load_metrics_artifact_payload(metrics_path: Path) -> dict[str, Any]:
++    if not metrics_path.exists():
++        raise FileNotFoundError(f"Metrics artifact not found: {metrics_path}")
++    if metrics_path.suffix != ".npz":
++        raise ValueError(f"Unsupported metrics artifact type: {metrics_path.suffix}")
++
++    with np.load(metrics_path, allow_pickle=True) as data:
++        return {key: data[key] for key in data.files}
++
++
++def validate_metrics_artifact_payload(
++    payload: dict[str, Any],
++    *,
++    expected_route_name: str | None = None,
++    expected_corpus_name: str | None = CORPUS_NAME,
++) -> None:
++    missing = METRICS_ARTIFACT_REQUIRED_KEYS - set(payload.keys())
++    if missing:
++        raise ValueError(f"Metrics artifact missing required keys: {sorted(missing)}")
++
++    unexpected = set(payload.keys()) - METRICS_ARTIFACT_REQUIRED_KEYS
++    if unexpected:
++        raise ValueError(f"Metrics artifact contains unexpected keys: {sorted(unexpected)}")
++
++    corpus_name = _parse_scalar_text(payload["corpus_name"], field_name="corpus_name")
++    route_name = _parse_scalar_text(payload["route_name"], field_name="route_name")
++    _parse_scalar_text(payload["created_at_utc"], field_name="created_at_utc")
++    metric_version = _parse_scalar_text(payload["metric_version"], field_name="metric_version")
++
++    if expected_corpus_name is not None and corpus_name != expected_corpus_name:
++        raise ValueError(
++            f"Metrics artifact corpus_name mismatch: expected={expected_corpus_name}, got={corpus_name}"
++        )
++    if expected_route_name is not None and route_name != expected_route_name:
++        raise ValueError(
++            f"Metrics artifact route_name mismatch: expected={expected_route_name}, got={route_name}"
++        )
++    if metric_version != METRIC_VERSION:
++        raise ValueError(
++            f"Metrics artifact version mismatch: expected={METRIC_VERSION}, got={metric_version}"
++        )
++
++    epoch_labels_array = np.asarray(payload["epoch_labels"])
++    epoch_counts_array = np.asarray(payload["epoch_counts"])
++    epoch_centroids_array = np.asarray(payload["epoch_centroids"])
++    semantic_dispersion_array = np.asarray(payload["semantic_dispersion"])
++    innovation_velocity_array = np.asarray(payload["innovation_velocity"])
++    source_embedding_files_array = np.asarray(payload["source_embedding_files"])
++
++    if epoch_labels_array.ndim != 1:
++        raise ValueError("epoch_labels must be a 1D array")
++    if len(epoch_labels_array) == 0:
++        raise ValueError("epoch_labels must not be empty")
++
++    epoch_labels = [str(label).strip() for label in epoch_labels_array.tolist()]
++    if any(not label for label in epoch_labels):
++        raise ValueError("epoch_labels must not contain empty values")
++    if len(set(epoch_labels)) != len(epoch_labels):
++        raise ValueError("epoch_labels must be unique")
++
++    epoch_starts = [_parse_epoch_label_start(label) for label in epoch_labels]
++    if epoch_starts != sorted(epoch_starts):
++        raise ValueError("epoch_labels must be sorted by ascending epoch start year")
++
++    if epoch_counts_array.ndim != 1:
++        raise ValueError("epoch_counts must be a 1D array")
++    if len(epoch_counts_array) != len(epoch_labels):
++        raise ValueError("epoch_counts length must match epoch_labels length")
++    if np.any(epoch_counts_array <= 0):
++        raise ValueError("epoch_counts must contain only positive integers")
++
++    if epoch_centroids_array.ndim != 2:
++        raise ValueError("epoch_centroids must be a 2D array")
++    if epoch_centroids_array.shape != (len(epoch_labels), EMBEDDING_DIM):
++        raise ValueError(
++            "epoch_centroids shape must equal "
++            f"({len(epoch_labels)}, {EMBEDDING_DIM}), got {epoch_centroids_array.shape}"
++        )
++
++    if semantic_dispersion_array.ndim != 1:
++        raise ValueError("semantic_dispersion must be a 1D array")
++    if len(semantic_dispersion_array) != len(epoch_labels):
++        raise ValueError(
++            "semantic_dispersion length must match epoch_labels length"
++        )
++
++    expected_velocity_length = max(len(epoch_labels) - 1, 0)
++    if innovation_velocity_array.ndim != 1:
++        raise ValueError("innovation_velocity must be a 1D array")
++    if len(innovation_velocity_array) != expected_velocity_length:
++        raise ValueError(
++            "innovation_velocity length must equal adjacent epoch pair count "
++            f"({expected_velocity_length}), got {len(innovation_velocity_array)}"
++        )
++
++    if source_embedding_files_array.ndim != 1:
++        raise ValueError("source_embedding_files must be a 1D array")
++    if len(source_embedding_files_array) == 0:
++        raise ValueError("source_embedding_files must not be empty")
++
++    source_embedding_files = [str(path).strip() for path in source_embedding_files_array.tolist()]
++    if any(not path for path in source_embedding_files):
++        raise ValueError("source_embedding_files must not contain empty values")
++    if source_embedding_files != sorted(set(source_embedding_files)):
++        raise ValueError("source_embedding_files must be unique and sorted deterministically")
++
++    if not np.isfinite(epoch_centroids_array).all():
++        raise ValueError("epoch_centroids must contain only finite values")
++    if not np.isfinite(semantic_dispersion_array).all():
++        raise ValueError("semantic_dispersion must contain only finite values")
++    if not np.isfinite(innovation_velocity_array).all():
++        raise ValueError("innovation_velocity must contain only finite values")
++
++
++def validate_metrics_artifact_instance(
++    artifact: MetricsArtifact,
++    *,
++    expected_route_name: str | None = None,
++    expected_corpus_name: str | None = CORPUS_NAME,
++) -> None:
++    payload = {
++        "corpus_name": np.asarray(artifact.corpus_name),
++        "route_name": np.asarray(artifact.route_name),
++        "epoch_labels": np.asarray(artifact.epoch_labels, dtype=object),
++        "epoch_counts": np.asarray(artifact.epoch_counts, dtype=np.int32),
++        "epoch_centroids": np.asarray(artifact.epoch_centroids, dtype=np.float32),
++        "semantic_dispersion": np.asarray(artifact.semantic_dispersion, dtype=np.float32),
++        "innovation_velocity": np.asarray(artifact.innovation_velocity, dtype=np.float32),
++        "source_embedding_files": np.asarray(artifact.source_embedding_files, dtype=object),
++        "created_at_utc": np.asarray(artifact.created_at_utc),
++        "metric_version": np.asarray(artifact.metric_version),
++    }
++    validate_metrics_artifact_payload(
++        payload,
++        expected_route_name=expected_route_name,
++        expected_corpus_name=expected_corpus_name,
++    )
++
++
++def reload_and_validate_metrics_artifact(
++    metrics_path: Path,
++    *,
++    expected_route_name: str | None = None,
++    expected_corpus_name: str | None = CORPUS_NAME,
++) -> dict[str, Any]:
++    payload = load_metrics_artifact_payload(metrics_path)
++    validate_metrics_artifact_payload(
++        payload,
++        expected_route_name=expected_route_name,
++        expected_corpus_name=expected_corpus_name,
++    )
++    return payload
++
++
++def summarize_metrics_artifact_payload(payload: dict[str, Any]) -> dict[str, Any]:
++    validate_metrics_artifact_payload(payload)
++
++    epoch_labels = [str(label) for label in np.asarray(payload["epoch_labels"]).tolist()]
++    epoch_counts = np.asarray(payload["epoch_counts"], dtype=np.int32)
++    innovation_velocity = np.asarray(payload["innovation_velocity"], dtype=np.float32)
++    source_embedding_files = [str(path) for path in np.asarray(payload["source_embedding_files"]).tolist()]
++
++    return {
++        "corpus_name": _parse_scalar_text(payload["corpus_name"], field_name="corpus_name"),
++        "route_name": _parse_scalar_text(payload["route_name"], field_name="route_name"),
++        "metric_version": _parse_scalar_text(payload["metric_version"], field_name="metric_version"),
++        "epoch_count": len(epoch_labels),
++        "first_epoch": epoch_labels[0],
++        "last_epoch": epoch_labels[-1],
++        "total_section_embeddings": int(np.sum(epoch_counts)),
++        "source_embedding_file_count": len(source_embedding_files),
++        "innovation_velocity_count": int(len(innovation_velocity)),
++        "is_singleton_epoch_route": len(epoch_labels) == 1,
++    }
++
++
+ def process_route_metrics(
+     route_name: str,
+     manifest_rows: list[Any],
+@@ -404,6 +690,11 @@
+     ensure_metrics_output_dir(route_name)
+     output_path = build_metrics_output_path(route_name)
+     write_metrics_artifact(artifact, output_path)
++    reload_and_validate_metrics_artifact(
++        output_path,
++        expected_route_name=route_name,
++        expected_corpus_name=CORPUS_NAME,
++    )
+ 
+     return output_path
+ 
+@@ -442,4 +733,4 @@
+ 
+ 
+ if __name__ == "__main__":
+-    run_phase5_metrics()+    run_phase5_metrics()
+
+--- /dev/null
++++ tests/test_post_phase5_validation.py
+@@ -0,0 +1,155 @@
++import sys
++import tempfile
++import unittest
++from dataclasses import dataclass
++from pathlib import Path
++
++import numpy as np
++
++THIS_DIR = Path(__file__).resolve().parent
++PROJECT_ROOT = THIS_DIR.parent
++if str(PROJECT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PROJECT_ROOT))
++
++from bins.s03_analysis.metrics import (  # noqa: E402
++    CORPUS_NAME,
++    EMBEDDING_DIM,
++    METRIC_VERSION,
++    MetricRecord,
++    extract_metric_records_from_manifest_row,
++    reload_and_validate_metrics_artifact,
++    summarize_metrics_artifact_payload,
++    validate_metrics_artifact_payload,
++    validate_records_for_route,
++    write_metrics_artifact,
++)
++from bins.s04_utils.artifacts import MetricsArtifact  # noqa: E402
++
++
++def make_bundle(*, doc_id: str = "doc-1", route: str = "Route_A_Modern") -> dict[str, np.ndarray]:
++    return {
++        "doc_id": np.asarray(doc_id),
++        "route": np.asarray(route),
++        "section_labels": np.asarray(["A_intro", "A_methods"], dtype=object),
++        "embeddings": np.vstack(
++            [
++                np.ones((EMBEDDING_DIM,), dtype=np.float32),
++                np.full((EMBEDDING_DIM,), 2.0, dtype=np.float32),
++            ]
++        ).astype(np.float32),
++        "source_path": np.asarray(f"data/structured/{route}/{doc_id}.json"),
++    }
++
++
++def make_artifact(*, route_name: str = "Route_A_Modern") -> MetricsArtifact:
++    return MetricsArtifact(
++        corpus_name=CORPUS_NAME,
++        route_name=route_name,
++        epoch_labels=["2025-2029"],
++        epoch_counts=[2],
++        epoch_centroids=np.ones((1, EMBEDDING_DIM), dtype=np.float32),
++        semantic_dispersion=np.asarray([0.125], dtype=np.float32),
++        innovation_velocity=np.asarray([], dtype=np.float32),
++        source_embedding_files=[f"data/embeddings/{route_name}/doc-1.npz"],
++        created_at_utc="2026-03-19T00:00:00+00:00",
++        metric_version=METRIC_VERSION,
++    )
++
++
++class TestPostPhase5Validation(unittest.TestCase):
++    def test_extract_metric_records_rejects_route_mismatch(self) -> None:
++        bundle = make_bundle(route="Route_B_Legacy")
++        manifest_row = {
++            "doc_id": "doc-1",
++            "route": "Route_A_Modern",
++            "year": "2025",
++        }
++
++        with self.assertRaisesRegex(ValueError, "route mismatch"):
++            extract_metric_records_from_manifest_row(
++                bundle,
++                manifest_row,
++                source_file="data/embeddings/Route_A_Modern/doc-1.npz",
++            )
++
++    def test_validate_records_for_route_rejects_cross_route_mix(self) -> None:
++        record_left = MetricRecord(
++            doc_id="left",
++            year=2025,
++            vector=np.ones((EMBEDDING_DIM,), dtype=np.float32),
++            source_file="left.npz",
++            section_label="A_intro",
++            route="Route_A_Modern",
++        )
++        record_right = MetricRecord(
++            doc_id="right",
++            year=2025,
++            vector=np.ones((EMBEDDING_DIM,), dtype=np.float32),
++            source_file="right.npz",
++            section_label="A_methods",
++            route="Route_B_Legacy",
++        )
++
++        with self.assertRaisesRegex(ValueError, "route mismatch"):
++            validate_records_for_route(
++                [record_left, record_right],
++                route_name="Route_A_Modern",
++            )
++
++    def test_validate_metrics_artifact_accepts_singleton_epoch_payload(self) -> None:
++        artifact = make_artifact()
++        payload = {
++            "corpus_name": np.asarray(artifact.corpus_name),
++            "route_name": np.asarray(artifact.route_name),
++            "epoch_labels": np.asarray(artifact.epoch_labels, dtype=object),
++            "epoch_counts": np.asarray(artifact.epoch_counts, dtype=np.int32),
++            "epoch_centroids": np.asarray(artifact.epoch_centroids, dtype=np.float32),
++            "semantic_dispersion": np.asarray(artifact.semantic_dispersion, dtype=np.float32),
++            "innovation_velocity": np.asarray(artifact.innovation_velocity, dtype=np.float32),
++            "source_embedding_files": np.asarray(artifact.source_embedding_files, dtype=object),
++            "created_at_utc": np.asarray(artifact.created_at_utc),
++            "metric_version": np.asarray(artifact.metric_version),
++        }
++
++        validate_metrics_artifact_payload(payload, expected_route_name="Route_A_Modern")
++        summary = summarize_metrics_artifact_payload(payload)
++
++        self.assertEqual(summary["epoch_count"], 1)
++        self.assertTrue(summary["is_singleton_epoch_route"])
++        self.assertEqual(summary["innovation_velocity_count"], 0)
++        self.assertEqual(summary["total_section_embeddings"], 2)
++
++    def test_validate_metrics_artifact_rejects_wrong_velocity_length(self) -> None:
++        artifact = make_artifact()
++        payload = {
++            "corpus_name": np.asarray(artifact.corpus_name),
++            "route_name": np.asarray(artifact.route_name),
++            "epoch_labels": np.asarray(["2020-2024", "2025-2029"], dtype=object),
++            "epoch_counts": np.asarray([2, 2], dtype=np.int32),
++            "epoch_centroids": np.ones((2, EMBEDDING_DIM), dtype=np.float32),
++            "semantic_dispersion": np.asarray([0.1, 0.2], dtype=np.float32),
++            "innovation_velocity": np.asarray([], dtype=np.float32),
++            "source_embedding_files": np.asarray(artifact.source_embedding_files, dtype=object),
++            "created_at_utc": np.asarray(artifact.created_at_utc),
++            "metric_version": np.asarray(artifact.metric_version),
++        }
++
++        with self.assertRaisesRegex(ValueError, "adjacent epoch pair count"):
++            validate_metrics_artifact_payload(payload, expected_route_name="Route_A_Modern")
++
++    def test_reload_and_validate_written_artifact(self) -> None:
++        artifact = make_artifact()
++        with tempfile.TemporaryDirectory() as tmpdir:
++            output_path = Path(tmpdir) / "metrics.npz"
++            write_metrics_artifact(artifact, output_path)
++            payload = reload_and_validate_metrics_artifact(
++                output_path,
++                expected_route_name="Route_A_Modern",
++                expected_corpus_name=CORPUS_NAME,
++            )
++
++        self.assertEqual(str(np.asarray(payload["route_name"]).item()), "Route_A_Modern")
++
++
++if __name__ == "__main__":
++    unittest.main()
