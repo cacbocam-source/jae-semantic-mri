@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,10 +24,11 @@ from bins.s04_utils.schemas import (
     EMBEDDING_BUNDLE_REQUIRED_KEYS,
 )
 
-
 EMBEDDING_DIM = 768
 EPOCH_WIDTH = 5
 METRIC_VERSION = "0.1.0"
+CORPUS_NAME = "JAE_Legacy_Audit"
+
 METRICS_ARTIFACT_REQUIRED_KEYS = frozenset(
     {
         "corpus_name",
@@ -39,7 +43,6 @@ METRICS_ARTIFACT_REQUIRED_KEYS = frozenset(
         "metric_version",
     }
 )
-CORPUS_NAME = "JAE_Legacy_Audit"
 
 
 @dataclass(slots=True)
@@ -53,8 +56,8 @@ class MetricRecord:
 
 
 def _row_get(row: Any, field: str) -> str:
-    if isinstance(row, dict):
-        value = row.get(field, "")
+    if isinstance(row, Mapping):
+        value: Any = row.get(field, "")
     else:
         value = getattr(row, field, "")
     return "" if value is None else str(value)
@@ -109,12 +112,14 @@ def load_embedding_bundle(bundle_path: Path) -> dict[str, Any]:
         raise ValueError(f"Unsupported embedding bundle type: {bundle_path.suffix}")
 
     with np.load(bundle_path, allow_pickle=True) as data:
-        return {key: data[key] for key in data.files}
+        bundle: dict[str, Any] = {}
+        for key in data.files:
+            bundle[str(key)] = data[key]
+        return bundle
 
 
 def validate_embedding_bundle(bundle: dict[str, Any]) -> None:
-    required_keys = EMBEDDING_BUNDLE_REQUIRED_KEYS
-    missing = required_keys - set(bundle.keys())
+    missing = EMBEDDING_BUNDLE_REQUIRED_KEYS - set(bundle.keys())
     if missing:
         raise ValueError(f"Embedding bundle missing required keys: {sorted(missing)}")
 
@@ -153,9 +158,7 @@ def validate_embedding_bundle(bundle: dict[str, Any]) -> None:
         )
 
     if embeddings.dtype != np.float32:
-        raise ValueError(
-            f"embeddings dtype must be float32, got {embeddings.dtype}"
-        )
+        raise ValueError(f"embeddings dtype must be float32, got {embeddings.dtype}")
 
     if len(section_labels) != embeddings.shape[0]:
         raise ValueError("section_labels length must match embeddings row count")
@@ -176,7 +179,7 @@ def extract_metric_records(
 ) -> list[MetricRecord]:
     validate_embedding_bundle(bundle)
 
-    if not source_file or not source_file.strip():
+    if not source_file.strip():
         raise ValueError("source_file must be provided for metric record extraction")
 
     doc_id = str(np.asarray(bundle[EMBEDDING_BUNDLE_KEY_DOC_ID]).item())
@@ -187,6 +190,7 @@ def extract_metric_records(
     )
 
     records: list[MetricRecord] = []
+
     for section_label, vector in zip(section_labels, embeddings, strict=True):
         vector = np.asarray(vector).astype(np.float32, copy=False)
         if vector.shape != (EMBEDDING_DIM,):
@@ -198,7 +202,7 @@ def extract_metric_records(
                 year=int(year),
                 vector=vector,
                 source_file=source_file,
-                section_label=str(section_label),
+                section_label=str(section_label).strip(),
                 route=route,
             )
         )
@@ -211,7 +215,7 @@ def extract_metric_records(
 
 def extract_metric_records_from_manifest_row(
     bundle: dict[str, Any],
-    manifest_row: dict[str, str],
+    manifest_row: Any,
     *,
     source_file: str,
 ) -> list[MetricRecord]:
@@ -227,6 +231,7 @@ def extract_metric_records_from_manifest_row(
 
     bundle_route = str(np.asarray(bundle[EMBEDDING_BUNDLE_KEY_ROUTE]).item()).strip()
     manifest_route = _row_get(manifest_row, "route").strip()
+
     if not manifest_route:
         raise ValueError(f"Manifest row missing route for doc_id={doc_id}")
 
@@ -254,9 +259,6 @@ def extract_metric_records_from_manifest_row(
 
 
 def assign_epoch(year: int, width: int = EPOCH_WIDTH) -> tuple[int, int]:
-    """
-    Map a year to a closed 5-year epoch, e.g. 1960 -> (1960, 1964).
-    """
     if width <= 0:
         raise ValueError("Epoch width must be positive")
 
@@ -271,9 +273,6 @@ def format_epoch_label(epoch: tuple[int, int]) -> str:
 
 
 def group_vectors_by_epoch(records: list[MetricRecord]) -> dict[str, np.ndarray]:
-    """
-    Group vectors by epoch label with deterministic epoch ordering.
-    """
     if not records:
         raise ValueError("Cannot group an empty record set")
 
@@ -295,14 +294,10 @@ def compute_epoch_centroid(epoch_vectors: np.ndarray) -> np.ndarray:
     if len(epoch_vectors) == 0:
         raise ValueError("Epoch vectors cannot be empty")
 
-    centroid = np.asarray(np.mean(epoch_vectors, axis=0), dtype=np.float32)
-    return centroid
+    return np.asarray(np.mean(epoch_vectors, axis=0), dtype=np.float32)
 
 
 def compute_semantic_dispersion(epoch_vectors: np.ndarray, centroid: np.ndarray) -> float:
-    """
-    Mean cosine distance from each vector in an epoch to that epoch centroid.
-    """
     if epoch_vectors.ndim != 2:
         raise ValueError("Epoch vectors must be 2D")
 
@@ -314,12 +309,6 @@ def compute_semantic_dispersion(epoch_vectors: np.ndarray, centroid: np.ndarray)
 def compute_innovation_velocity(
     epoch_centroids: dict[str, np.ndarray]
 ) -> dict[str, float]:
-    """
-    Cosine distance between adjacent epoch centroids.
-
-    Output key example:
-    '1960-1964__to__1965-1969'
-    """
     labels = list(epoch_centroids.keys())
     velocities: dict[str, float] = {}
 
@@ -367,8 +356,7 @@ def compute_epoch_metrics(grouped_vectors: dict[str, np.ndarray]) -> dict[str, A
 
 
 def collect_source_embedding_files(records: list[MetricRecord]) -> list[str]:
-    files = sorted({record.source_file for record in records})
-    return files
+    return sorted({record.source_file for record in records})
 
 
 def build_metrics_payload(records: list[MetricRecord]) -> dict[str, Any]:
@@ -432,12 +420,14 @@ def build_metrics_artifact(
     artifact = MetricsArtifact(
         corpus_name=corpus_name,
         route_name=route_name,
-        epoch_labels=list(epoch_labels),
-        epoch_counts=list(payload["epoch_counts"]),
+        epoch_labels=tuple(str(label) for label in epoch_labels),
+        epoch_counts=tuple(int(count) for count in payload["epoch_counts"]),
         epoch_centroids=epoch_centroids,
         semantic_dispersion=semantic_dispersion,
         innovation_velocity=innovation_velocity,
-        source_embedding_files=list(payload["source_embedding_files"]),
+        source_embedding_files=tuple(
+            str(path) for path in payload["source_embedding_files"]
+        ),
         created_at_utc=utc_now_iso(),
         metric_version=METRIC_VERSION,
     )
@@ -484,7 +474,10 @@ def load_metrics_artifact_payload(metrics_path: Path) -> dict[str, Any]:
         raise ValueError(f"Unsupported metrics artifact type: {metrics_path.suffix}")
 
     with np.load(metrics_path, allow_pickle=True) as data:
-        return {key: data[key] for key in data.files}
+        payload: dict[str, Any] = {}
+        for key in data.files:
+            payload[str(key)] = data[key]
+        return payload
 
 
 def validate_metrics_artifact_payload(
@@ -577,7 +570,9 @@ def validate_metrics_artifact_payload(
     if len(source_embedding_files_array) == 0:
         raise ValueError("source_embedding_files must not be empty")
 
-    source_embedding_files = [str(path).strip() for path in source_embedding_files_array.tolist()]
+    source_embedding_files = [
+        str(path).strip() for path in source_embedding_files_array.tolist()
+    ]
     if any(not path for path in source_embedding_files):
         raise ValueError("source_embedding_files must not contain empty values")
     if source_embedding_files != sorted(set(source_embedding_files)):
@@ -597,7 +592,7 @@ def validate_metrics_artifact_instance(
     expected_route_name: str | None = None,
     expected_corpus_name: str | None = CORPUS_NAME,
 ) -> None:
-    payload = {
+    payload: dict[str, Any] = {
         "corpus_name": np.asarray(artifact.corpus_name),
         "route_name": np.asarray(artifact.route_name),
         "epoch_labels": np.asarray(artifact.epoch_labels, dtype=object),
@@ -622,7 +617,7 @@ def reload_and_validate_metrics_artifact(
     expected_route_name: str | None = None,
     expected_corpus_name: str | None = CORPUS_NAME,
 ) -> dict[str, Any]:
-    payload = load_metrics_artifact_payload(metrics_path)
+    payload: dict[str, Any] = load_metrics_artifact_payload(metrics_path)
     validate_metrics_artifact_payload(
         payload,
         expected_route_name=expected_route_name,
@@ -637,7 +632,9 @@ def summarize_metrics_artifact_payload(payload: dict[str, Any]) -> dict[str, Any
     epoch_labels = [str(label) for label in np.asarray(payload["epoch_labels"]).tolist()]
     epoch_counts = np.asarray(payload["epoch_counts"], dtype=np.int32)
     innovation_velocity = np.asarray(payload["innovation_velocity"], dtype=np.float32)
-    source_embedding_files = [str(path) for path in np.asarray(payload["source_embedding_files"]).tolist()]
+    source_embedding_files = [
+        str(path) for path in np.asarray(payload["source_embedding_files"]).tolist()
+    ]
 
     return {
         "corpus_name": _parse_scalar_text(payload["corpus_name"], field_name="corpus_name"),
@@ -661,6 +658,10 @@ def process_route_metrics(
         raise ValueError(f"No manifest rows provided for route={route_name}")
 
     records: list[MetricRecord] = []
+    embedding_root = Path("data/embeddings") / route_name
+
+    if not embedding_root.exists():
+        raise FileNotFoundError(f"Embedding directory not found: {embedding_root}")
 
     for row in sorted(manifest_rows, key=_row_doc_id):
         doc_id = _row_doc_id(row)
@@ -671,13 +672,21 @@ def process_route_metrics(
                 f"Route mismatch while processing metrics: expected={route_name}, got={row_route}, doc_id={doc_id}"
             )
 
-        bundle_path = Path("data/embeddings") / route_name / f"{doc_id}.npz"
-        if not bundle_path.exists():
+        matches: list[Path] = list(embedding_root.rglob(f"{doc_id}.npz"))
+
+        if len(matches) == 0:
             raise FileNotFoundError(
-                f"Embedding bundle not found for doc_id={doc_id}: {bundle_path}"
+                f"Embedding bundle not found for doc_id={doc_id} under {embedding_root}"
             )
 
+        if len(matches) > 1:
+            raise RuntimeError(
+                f"Multiple embedding bundles found for doc_id={doc_id}: {matches}"
+            )
+
+        bundle_path = matches[0]
         bundle = load_embedding_bundle(bundle_path)
+
         doc_records = extract_metric_records_from_manifest_row(
             bundle,
             row,
@@ -685,11 +694,15 @@ def process_route_metrics(
         )
         records.extend(doc_records)
 
+    if not records:
+        raise RuntimeError(f"No metric records generated for route={route_name}")
+
     artifact = build_metrics_artifact(records, route_name=route_name)
 
     ensure_metrics_output_dir(route_name)
     output_path = build_metrics_output_path(route_name)
     write_metrics_artifact(artifact, output_path)
+
     reload_and_validate_metrics_artifact(
         output_path,
         expected_route_name=route_name,

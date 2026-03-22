@@ -213,15 +213,58 @@ def get_pending_records(
     rows = load_manifest_rows(manifest_path)
     return [row for row in rows if row.get(stage, STATUS_PENDING) != STATUS_SUCCESS]
 
+
+def _embedding_bundle_exists(route: str, doc_id: str) -> bool:
+    """
+    Robustly detect embeddings on disk for both flat and nested route structures.
+
+    Supports:
+    - data/embeddings/Route_A_Modern/<doc_id>.npz
+    - data/embeddings/Route_B_Legacy/<year>/<doc_id>.npz
+    """
+    if not route.strip() or not doc_id.strip():
+        return False
+
+    embedding_root = Path("data/embeddings") / route
+    if not embedding_root.exists():
+        return False
+
+    matches = list(embedding_root.rglob(f"{doc_id}.npz"))
+    return len(matches) > 0
+
+
 def get_metric_eligible_records(
     manifest_path: Path = PIPELINE_MANIFEST,
 ) -> list[dict[str, str]]:
+    """
+    Metrics are eligible when:
+    - metrics_status is not already success
+    - structured_status is success
+    - and either:
+      * embedding_status is success, OR
+      * an embedding bundle already exists on disk
+
+    This makes Phase 5 robust to cases where embedding artifacts were created
+    successfully but embedding_status was not backfilled in the manifest.
+    """
     rows = get_pending_records("metrics_status", manifest_path=manifest_path)
-    return [
-        row
-        for row in rows
-        if row.get("embedding_status", STATUS_PENDING) == STATUS_SUCCESS
-    ]
+
+    eligible: list[dict[str, str]] = []
+    for row in rows:
+        structured_ok = row.get("structured_status", STATUS_PENDING) == STATUS_SUCCESS
+        if not structured_ok:
+            continue
+
+        embedding_ok = row.get("embedding_status", STATUS_PENDING) == STATUS_SUCCESS
+        if not embedding_ok:
+            route = row.get("route", "").strip()
+            doc_id = row.get("doc_id", "").strip()
+            embedding_ok = _embedding_bundle_exists(route, doc_id)
+
+        if embedding_ok:
+            eligible.append(row)
+
+    return eligible
 
 
 def mark_metrics_success(
@@ -247,6 +290,7 @@ def mark_metrics_failure(
         manifest_path=manifest_path,
     )
 
+
 def seed_manifest_from_raw_pdfs(
     pdf_paths: Iterable[Path],
     *,
@@ -258,11 +302,16 @@ def seed_manifest_from_raw_pdfs(
     ensure_manifest_exists(manifest_path)
 
     for pdf_path in pdf_paths:
+        inferred_year = infer_year(pdf_path)
+        if inferred_year < 0:
+            # Non-temporal artifacts should not enter the manifest.
+            continue
+
         record = ManifestRecord(
             doc_id=make_doc_id(pdf_path),
             source_pdf_path=str(pdf_path.resolve()),
             source_filename=pdf_path.name,
             route=infer_route(pdf_path),
-            year=str(infer_year(pdf_path)),
+            year=str(inferred_year),
         )
         upsert_record(record, manifest_path)
