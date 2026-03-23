@@ -1,275 +1,323 @@
-# BETA PILOT EPOCH PROTOCOL
+# Data Schema Specification
 
-Version: 1.1
-Date: 2026-03-20
-Status: Active beta pilot methodology for live-manuscript engine testing
+## JAE_Legacy_Audit — Semantic MRI Pipeline
 
----
+Version: 2.4  
+Date: 2026-03-23  
+Status: Post-stabilization schema aligned with validated Phase 6 reporting execution
 
-## 1. Purpose
-
-This protocol defines the beta pilot study for the JAE_Legacy_Audit project.
-
-This pilot is **not** designed to support validated inferential claims about historical semantic change. It is a **live-manuscript beta systems test** designed to verify that the engine functions correctly end-to-end on a controlled smaller corpus while larger ingestion continues.
-
-Primary objective:
-- verify engine correctness, contract integrity, and reproducible epoch behavior on live manuscripts
-
-Non-objective:
-- population-level inference
-- formal hypothesis testing
-- strong historical trend claims
+> This schema reflects the corrected and validated system state.  
+> See `DEBUGGING_AUDIT_2026-03-22.md` for full correction history.
 
 ---
 
-## 2. Canonical Corpus Organization
+## 1. Overview
 
-Active raw-manuscript storage rule:
+The current system produces six primary artifact classes:
+1. structured JSON (Phase 3)
+2. embedding bundles (Phase 4)
+3. metrics artifacts (Phase 5)
+4. manifest records (control layer)
+5. backend reporting outputs (Phase 6)
+6. manuscript-facing reporting outputs (Phase 6, APA 7 constrained)
+
+Each artifact has a strict schema or contract boundary. Violations indicate pipeline drift.
+
+---
+
+## 2. Structured artifact schema
+
+**Location**
 
 ```text
-data/raw_pdfs/<route>/<year>/<filename>.pdf
+data/structured/<route>/<year>/<file>.json
 ```
 
-Examples:
+**Structure**
+
+Each JSON file contains flattened section fields:
+
+```json
+{
+  "A_intro": "string",
+  "A_methods": "string",
+  "A_results": "string"
+}
+```
+
+**Constraints**
+- UTF-8 encoded
+- non-empty text fields where section text exists
+- one file per source PDF
+- no embedded metadata required beyond the section payload
+- no nested `sections` dict
+
+---
+
+## 3. Embedding bundle schema (authoritative)
+
+**Location**
+
+Embedding bundles are recursively discoverable under:
 
 ```text
-data/raw_pdfs/Route_A_Modern/2025/<file>.pdf
-data/raw_pdfs/Route_B_Legacy/1960/<file>.pdf
+data/embeddings/<route>/...
 ```
 
-Rules:
-- manuscripts are grouped by `route` and single resolved integer `year`
-- manuscripts are **not** stored by epoch folder
-- epoch assignment happens later during metrics processing
-- all active paths must resolve under the NVMe project root
+**Required keys**
 
-Allowed route names:
-- `Route_A_Modern`
-- `Route_B_Legacy`
+Each `.npz` file must contain:
 
-Project year bounds:
-- `1960` through `2026`
+| Key | Type | Description |
+|---|---|---|
+| `doc_id` | scalar string | Stable document identifier |
+| `route` | scalar string | Route name |
+| `section_labels` | 1D array (`object`) | Labels per embedding |
+| `embeddings` | 2D array (`float32`) | Shape: `(n_sections, 768)` |
+| `source_path` | scalar string | Path to structured JSON source |
+
+**Current implementation**
+- single embedding per document
+- `section_labels = ["document"]`
+- `embeddings.shape = (1, 768)`
+
+**Constraints**
+- `embeddings.ndim == 2`
+- `embeddings.shape[1] == 768`
+- dtype must be `float32`
+- values must be finite
+- `len(section_labels) == embeddings.shape[0]`
+- `doc_id` must be derived from source PDF path, not JSON path
+
+**Storage invariant**
+- structured: `data/structured/<route>/<year>/<file>.json`
+- embeddings: recursively discoverable under `data/embeddings/<route>/...`
 
 ---
 
-## 3. Intake Control Manifest
+## 4. Metrics artifact schema
 
-Control template path:
+**Location**
 
 ```text
-data/manifests/beta_sample_manifest_template.csv
+data/metrics/<route>/metrics.npz
 ```
 
-Required control fields include:
-- `beta_batch_id`
-- `sample_id`
-- `route_target`
-- `sampling_bucket`
-- `risk_class`
-- `source_host`
-- `source_url`
-- `source_identifier`
-- `expected_filename`
-- `destination_stage_path`
-- `planned_year`
-- `manual_review_status`
-- `download_status`
-- `promotion_candidate`
-- `promotion_status`
-- `notes`
+**Required keys**
 
-Operational rule:
-- no manuscript enters the active pilot corpus without an intake-control record
+| Key | Type | Description |
+|---|---|---|
+| `corpus_name` | scalar | Corpus identifier |
+| `route_name` | scalar | Route identifier |
+| `epoch_labels` | 1D array (`object`) | Epoch strings |
+| `epoch_counts` | 1D array (`int32` or equivalent integer array) | Counts per epoch |
+| `epoch_centroids` | 2D array (`float32`) | Shape: `(N, 768)` |
+| `semantic_dispersion` | 1D array (`float32`) | Per-epoch dispersion |
+| `innovation_velocity` | 1D array (`float32`) | Between-epoch distances |
+| `source_embedding_files` | 1D array (`object`) | Source bundle paths |
+| `created_at_utc` | scalar | Timestamp |
+| `metric_version` | scalar | Version string |
 
----
-
-## 4. Year Resolution Rule
-
-Year must be resolved using this precedence:
-1. explicit authoritative year / manifest year
-2. legacy year map
-3. supported filename parsing
-4. fail and quarantine if unresolved
-
-Operational rules:
-- each manuscript must have exactly one resolved year
-- unresolved-year manuscripts do not enter the active pilot corpus
-- manifest year is the authoritative year used downstream
-- embedding bundles do not supply the authoritative year for Phase 5
+**Constraints**
+- `len(epoch_labels) = N`
+- `epoch_centroids.shape = (N, 768)`
+- `len(innovation_velocity) = N - 1`
+- all numeric arrays must be finite
+- epoch labels must be sorted ascending
 
 ---
 
-## 5. Epoch Rule
+## 5. Epoch schema
 
-Epochs are deterministic 5-year closed bins anchored at 1960.
+**Configuration**
+- `EPOCH_WIDTH = 5`
+- `BASE_YEAR = 1960`
 
-Examples:
-- `1960 -> 1960-1964`
-- `1964 -> 1960-1964`
-- `1965 -> 1965-1969`
-- `2025 -> 2025-2029`
-- `2026 -> 2025-2029`
+**Mapping rule**
 
-Operational rule:
-- raw corpus organization is by year
-- analysis grouping is by derived epoch
+```python
+epoch_start = year - ((year - 1960) % 5)
+epoch_end   = epoch_start + 4
+```
 
----
+**Label format**
+- `1960-1964`
+- `1965-1969`
 
-## 6. Eligibility and Quarantine Criteria
-
-### Inclusion criteria
-A manuscript is eligible for the beta pilot if it has:
-- a valid PDF
-- a resolvable route
-- a resolvable year
-- a unique `doc_id`
-- a source path under the NVMe project root
-- a valid manifest/control row
-
-### Quarantine criteria
-A manuscript must be excluded from the active pilot if any of the following apply:
-- route unresolved
-- year unresolved
-- year out of bounds
-- duplicate `doc_id`
-- duplicate source path with unresolved conflict
-- corrupted or unreadable PDF
-- manifest/path mismatch
-
-Excluded items must be logged, not silently dropped.
+**Interpretation**
+- each epoch aggregates all vectors within its interval
+- epochs are non-overlapping and contiguous
 
 ---
 
-## 7. Pilot Sampling Strategy
+## 6. Manifest schema
 
-This is a purposeful engineering sample, not a random inferential sample.
+**Location**
 
-Target pilot characteristics:
-- both routes represented
-- multiple publication years if available
-- heterogeneous PDF characteristics
-- at least one route with more than one realized epoch if the live corpus allows it
+```text
+data/manifests/pipeline_manifest.csv
+```
 
-Recommended default beta design:
-- 16 total PDFs
-- 6 modern typical cases
-- 4 legacy typical cases
-- 4 high-risk / edge / deviant cases
-- 2 random audit cases
+**Required columns**
+- `doc_id`
+- `source_pdf_path`
+- `source_filename`
+- `route`
+- `year`
+- `extract_status`
+- `structured_status`
+- `embedding_status`
+- `metrics_status`
+- `extract_method`
+- `page_count`
+- `error_message`
+- `last_stage_run`
+- `artifact_version`
+- `updated_at`
 
----
+**Allowed status values**
+- `pending`
+- `success`
+- `failed`
+- `skipped`
 
-## 8. Workflow
-
-### Stage 0 — Intake staging
-1. collect live manuscript PDFs
-2. resolve route and year
-3. move files into canonical route/year layout
-4. seed or update control/manifest rows
-
-### Stage 1 — Intake audit
-Generate a pre-pipeline summary containing:
-- manuscript count by route
-- manuscript count by year
-- manuscript count by prospective epoch
-- duplicate/conflict count
-- unresolved/quarantined count
-
-### Stage 2 — Pipeline execution
-Run the pilot corpus through:
-- extraction
-- structured section export
-- section embeddings
-- Phase 5 route-level metrics generation
-
-### Stage 3 — Post-Phase-5 validation
-Validate:
-- metrics artifact structure
-- route consistency
-- manifest consistency
-- deterministic epoch grouping
-- acceptance of valid singleton-epoch artifacts where applicable
-
-### Stage 4 — Pilot summary
-Produce a pilot closeout summary including:
-- manuscripts processed
-- manuscripts quarantined
-- route/year/epoch coverage
-- artifact validity outcomes
-- engine failures or manual interventions
-- recommendation for scale-up or further repair
+**Role**
+The manifest provides:
+- pipeline state tracking
+- stage eligibility control
+- metadata injection (`year`, `route`)
+- audit traceability
 
 ---
 
-## 9. Primary Outcomes
+## 7. Metrics eligibility logic
 
-Primary operational outcomes:
-1. ingestion success rate
-2. year resolution success rate
-3. manifest integrity rate
-4. Phase 2–5 completion rate on the pilot corpus
-5. route-level metrics artifact validation success
-6. realized epoch count by route
-
-Secondary operational outcomes:
-1. duplicate/conflict rate
-2. quarantine rate
-3. extraction failure rate
-4. embedding failure rate
-5. metrics failure rate
-6. manual intervention count
+A document is eligible for metrics if:
+- `structured_status == success`
+- and
+  - `embedding_status == success`
+  - or an embedding bundle exists on disk
 
 ---
 
-## 10. Success / Failure Criteria
+## 8. Cross-artifact relationships
 
-### Pilot success
-The pilot is successful if:
-- manuscripts are staged under canonical route/year organization
-- manifest/control rows are complete and valid
-- Phases 2–5 execute on the pilot corpus
-- route-level metrics artifacts are generated
-- post-Phase-5 validation passes
-- reruns are deterministic
-- logs and handoff docs can be updated
+### Document flow
+`PDF → Structured JSON → Embedding Bundle → MetricRecord(s) → Metrics Artifact`
 
-### Pilot failure / hold
-The pilot remains incomplete if:
-- unresolved route/year conflicts persist
-- corpus placement is nondeterministic
-- post-Phase-5 validation fails
-- outputs require undocumented manual intervention
-- provenance or control records are incomplete
+### Identity propagation
+- `doc_id` originates from the PDF path
+- it is preserved across all stages
+- it must remain stable
+
+### Temporal injection
+- `year` originates from the manifest
+- `year` is not stored in embedding bundles as a trusted Phase 5 source
+- `year` is applied during metrics computation
 
 ---
 
-## 11. Phase 6 Gate
+## 9. Validation invariants
 
-The pilot may justify broader Phase 6 work only if live-manuscript ingestion expands route coverage enough to produce analytically meaningful multi-epoch route behavior.
+The pipeline is valid only if all of the following hold.
 
-If routes remain singleton-epoch after pilot ingestion, Phase 6 should remain descriptive/readiness-oriented.
+### Structural
+- structured count equals embedding count for the validated legacy corpus
+
+### Schema
+- all embedding bundles pass validation
+- all metrics artifacts pass validation
+
+### Metrics
+- each artifact loads without error
+- `epoch_labels` are sorted
+- `epoch_counts > 0`
+
+### Current validated temporal state
+- `Route_A_Modern`: `['2025-2029']`
+- `Route_B_Legacy`: `['1960-1964', '1965-1969']`
+- `Route_B_Legacy` innovation-velocity count: `1`
+
+---
+
+## 10. Phase 6 reporting output locations
+
+### Backend analysis outputs
+- `analysis_outputs/summaries/`
+- `analysis_outputs/tables/`
+- `analysis_outputs/figures/`
+
+### Manuscript-facing outputs
+- `manuscript/paper/tables/`
+- `manuscript/paper/figures/`
+
+These locations are downstream reporting/output surfaces and do not replace the validated route-level metrics artifacts stored under `data/metrics/`.
 
 ---
 
-# YEAR DOMAIN AND VALIDATION RULES
+## 11. Phase 6 reporting artifacts
 
-Valid year domain:
-- integer years between 1960 and 2026 (inclusive)
+### Descriptive summary outputs
+Current validated outputs:
+- `analysis_outputs/summaries/Route_A_Modern_summary.md`
+- `analysis_outputs/summaries/Route_B_Legacy_summary.md`
 
-Year sources:
-- Route_A_Modern → filename-derived
-- Route_B_Legacy → directory-derived
+### Machine-readable table exports
+Current validated outputs:
+- `analysis_outputs/tables/Route_A_Modern_epoch_summary.csv`
+- `analysis_outputs/tables/Route_A_Modern_innovation_velocity.csv`
+- `analysis_outputs/tables/Route_B_Legacy_epoch_summary.csv`
+- `analysis_outputs/tables/Route_B_Legacy_innovation_velocity.csv`
 
-Invalid cases:
-- files with no resolvable year (e.g., `Vol1_1.pdf`)
+### Backend figure exports
+Current validated outputs:
+- `analysis_outputs/figures/Route_A_Modern_epoch_dispersion.png`
+- `analysis_outputs/figures/Route_B_Legacy_epoch_dispersion.png`
+- `analysis_outputs/figures/Route_B_Legacy_innovation_velocity.png`
 
-Handling rules:
-- invalid-year documents are excluded prior to manifest seeding
-- sentinel values (e.g., -1) are not persisted in schema artifacts
-- all downstream artifacts must contain valid year assignments
+### APA manuscript outputs
+Current validated outputs:
+- `manuscript/paper/tables/Table_1_epoch_summary.md`
+- `manuscript/paper/tables/Table_2_innovation_velocity.md`
+- `manuscript/paper/figures/Figure_1_epoch_dispersion.png`
+- `manuscript/paper/figures/Figure_1_epoch_dispersion.md`
+- `manuscript/paper/figures/Figure_2_innovation_velocity.png`
+- `manuscript/paper/figures/Figure_2_innovation_velocity.md`
 
-Schema invariant:
-- every document participating in metrics must resolve to exactly one valid year
+### Reporting constraint
+All manuscript-facing and reporting-facing Phase 6 outputs are governed by mandatory APA 7 compliance.
 
 ---
+
+## 12. Known failure modes (resolved)
+
+Previously observed and corrected:
+- embedding bundles missing required keys
+- `doc_id` derived from incorrect path
+- metrics loader assuming flat directory structure only
+- manifest eligibility blocking valid records
+- epoch collapse to singleton due to ingestion/schema issues
+- documentation drift across current-state and historical files
+
+All pipeline-state issues above were resolved by 2026-03-22; the documentation/reporting synchronization layer was extended on 2026-03-23.
+
+---
+
+## 13. Current state
+
+The schema is now:
+- consistent with code
+- validated through full pipeline execution
+- aligned with current audit record
+- extended to cover Phase 6 reporting outputs
+- stable for downstream descriptive and manuscript-facing analysis
+
+---
+
+## 14. Control references
+- `METHODS_PIPELINE.md`
+- `AUDIT_CONTEXT.md`
+- `RESEARCH_LOG.md`
+- `DEBUGGING_AUDIT_2026-03-22.md`
+- `SCHEMA_CONTRACT.json`
+- `REPO_KEEP_ARCHIVE_MAP.md`

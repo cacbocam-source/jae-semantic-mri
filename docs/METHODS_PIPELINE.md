@@ -2,457 +2,317 @@
 
 ## Semantic MRI of Agricultural Education
 
-Version: 2.2
-Date: 2026-03-20
-Status: Supplemental methods summary aligned to the stabilized Phase 5 state and the active beta pilot epoch protocol
+Version: 2.4  
+Date: 2026-03-23  
+Status: Post-stabilization methods summary aligned to validated Phase 6 reporting execution
+
+> This document reflects the validated pipeline and reporting state following stabilization and Phase 6 extension.  
+> See `DEBUGGING_AUDIT_2026-03-22.md` for full engineering audit and correction history.
 
 ---
 
-# 1. Computational Environment
+## 1. Computational environment
 
 All analyses were conducted on an Apple Silicon workstation equipped with an M3 Max processor and 64 GB of unified memory.
 
-Embedding computation used Apple Metal Performance Shaders through:
+Embedding computation used Apple Metal Performance Shaders:
 
 ```python
 DEVICE = "mps"
 ```
 
-Primary data storage was provided through the NVMe-backed project root:
+Primary data storage:
 
 ```text
 /Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
 ```
 
-The embedding model was:
+Embedding model:
 
 ```text
 nomic-ai/nomic-embed-text-v1.5
 ```
 
-Key model/runtime properties:
+Key runtime characteristics:
 - 768-dimensional embeddings
 - 8192-token context window
 - worker pool constrained to `MAX_WORKERS = 8`
 
-Validated environment capture:
+Environment reproducibility artifacts:
 - `pyproject.toml`
 - `requirements-lock.txt`
 
 ---
 
-# 2. Corpus Processing Architecture
+## 2. Corpus processing architecture
 
-The analysis repository is organized around:
-1. extraction and cleaning
-2. segmentation and structured export
-3. section embedding generation
-4. route-level vector metrics
+The analysis pipeline is organized into five operational stages:
+1. extraction and cleaning (Bin 02)
+2. segmentation and structured export (Bin 03)
+3. embedding generation (Bin 03)
+4. route-level metrics aggregation (Phase 5)
+5. interpretive/reporting outputs (Phase 6)
 
-Acquisition is external to the active analysis runtime spine, but the next-study beta pilot protocol is now defined for controlled live-manuscript intake.
+### Dual ingestion schema
 
----
+The system operates across two canonical ingestion routes.
 
----
+**Route_A_Modern**
+- year resolved from filename
 
-# 2. Corpus Processing Architecture (Updated)
+**Route_B_Legacy**
+- year resolved from directory structure
 
-The analysis pipeline operates under a dual ingestion schema:
+This dual schema is resolved through deterministic year inference during processing.
 
-- Route_A_Modern (filename-based year resolution)
-- Route_B_Legacy (directory-based year resolution)
+### Phase 3 execution behavior
 
-During Phase 3 (structured export), the system performs:
+During analysis execution:
+- manifest seeding
+- year inference
+- exclusion of non-temporal artifacts
+- structured JSON export
+- embedding generation
+- metrics eligibility propagation
 
-1. manifest seeding (requires temporary year inference bridge)
-2. filtering of non-temporal artifacts (no resolvable year)
-3. section-level JSON export
-4. embedding generation
-5. route-level metrics aggregation
-
-Important implementation note:
-
+Implementation note:
 - `write_section_export()` may re-access raw PDFs and re-trigger OCR
-- therefore, the pipeline is not strictly single-pass between bins
-- this does not affect correctness but introduces computational redundancy
+- the pipeline is not strictly single-pass
+- redundancy affects compute cost but not correctness
 
-Non-temporal documents are excluded prior to processing and do not contribute to metrics.
-
----
-
-# 3. Existing Validated Benchmark Corpus
-
-The current implemented and validated pipeline proofs used a benchmark corpus under:
-
-```text
-data/raw/Route_A_Modern/
-data/raw/Route_B_Legacy/
-```
-
-These files support the current regression tests and Phase 2–5 validation surface.
+Non-temporal artifacts (e.g., unresolved year) are excluded prior to downstream processing.
 
 ---
 
-# 4. Beta Pilot Epoch Intake Protocol
+## 3. Validated corpus state
 
-The active next-study intake rule for live manuscripts is:
+Validated benchmark / live state reflected in the current repo:
+- `data/raw/Route_A_Modern/`
+- `data/raw/Route_B_Legacy/`
 
-```text
-data/raw_pdfs/<route>/<year>/<filename>.pdf
-```
-
-Operational rules:
-- each manuscript must resolve to exactly one route and one year
-- manuscripts are not stored by epoch folder
-- unresolved route/year items are quarantined
-- epoch assignment is derived later from year
-
-Pilot sample logic is documented in `docs/BETA_PILOT_EPOCH_PROTOCOL.md`.
-
-Recommended pilot characteristics:
-- both routes represented
-- multiple years if available
-- heterogeneous PDF characteristics
-- enough corpus breadth to test whether multi-epoch coverage emerges in one or both routes
+Legacy execution state:
+- 1960–1969 legacy corpus processed
+- 149 validated legacy documents in the current working set
+- full pipeline completion through route-level metrics
 
 ---
 
-# 5. Extraction and Cleaning
+## 4. Intake protocol
 
-Source manuscripts are processed through `bins/s02_processor/`.
-
-Implemented behaviors:
-- digital extraction where native text is available
-- OCR fallback for scan-derived legacy materials
-- reference-section truncation before downstream analysis
-- route-aware preparation for later segmentation
-
----
-
-# 6. Segmentation and Structured Export
-
-The operational segmentation output relevant to downstream analysis is:
-- `A_intro`
-- `A_methods`
-- `A_results`
-
-These are exported as flattened top-level JSON fields in structured artifacts under:
-
-```text
-data/structured/<route_name>/<doc_id>.json
-```
-
-Year resolution is delegated to `bins/s04_utils/year_resolution.py`.
-
-Year precedence:
-1. manifest year when available
-2. explicit legacy filename map
-3. supported filename parsing
-4. fail fast
-
----
-
-# 7. Phase 4 — Section Embedding Generation
-
-Input:
-- validated structured JSON artifacts from `data/structured/<route_name>/`
-
-Output:
-- validated embedding bundles at:
-
-```text
-data/embeddings/<route_name>/<doc_id>.npz
-```
-
-Bundle schema:
-- `doc_id`
-- `route`
-- `section_labels`
-- `embeddings`
-- `source_path`
-
----
-
-# 8. Phase 5 — Vector Metrics
-
-Phase 5 is implemented in:
-
-```text
-bins/s03_analysis/metrics.py
-```
-
-Inputs:
-- validated Phase 4 embedding artifacts
-- manifest metadata from `data/manifests/pipeline_manifest.csv`
-
-Temporal join:
-- `year` is injected from the manifest row
-- `year` is not read from the embedding bundle
-
-Outputs:
-- route-level metrics artifacts written to:
-
-```text
-data/metrics/<route_name>/metrics.npz
-```
-
-Current interpretation boundary:
-- the validated current artifact state is singleton-epoch for both routes
-- therefore current analysis is descriptive/readiness-oriented rather than substantively inferential
-
----
-
-# 9. Beta Readiness Gate Before Broader Phase 6 Work
-
-Before broader inferential Phase 6 work is justified, the beta pilot must demonstrate:
-- deterministic intake under route/year organization
-- manifest integrity
-- successful Phases 2–5 execution on the live-manuscript pilot corpus
-- route-level metrics artifact generation and validation
-- evidence that epoch coverage expands beyond the current singleton-route artifact condition if the expanded corpus allows it
-
----
-
-# 10. Reproducibility and Auditability
-
-The computational pipeline incorporates:
-- deterministic filesystem layout
-- explicit stage artifacts
-- manifest-driven execution tracking
-- validation layers for schema conformity
-- typed artifact boundaries
-- route-level output persistence
-- synchronized control documentation
-
-Current handoff/control docs:
-- `AUDIT_CONTEXT.md`
-- `RESEARCH_LOG.md`
-- `audit.md`
-- `REPO_KEEP_ARCHIVE_MAP.md`
-- `docs/BETA_PILOT_EPOCH_PROTOCOL.md`
-
-# Computational Methods Pipeline
-
-## Semantic MRI of Agricultural Education
-
-Version: 2.2
-Date: 2026-03-20
-Status: Supplemental methods summary aligned to the stabilized Phase 5 state and the active beta pilot epoch protocol
-
----
-
-# 1. Computational Environment
-
-All analyses were conducted on an Apple Silicon workstation equipped with an M3 Max processor and 64 GB of unified memory.
-
-Embedding computation used Apple Metal Performance Shaders through:
-
-```python
-DEVICE = "mps"
-```
-
-Primary data storage was provided through the NVMe-backed project root:
-
-```text
-/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit
-```
-
-The embedding model was:
-
-```text
-nomic-ai/nomic-embed-text-v1.5
-```
-
-Key model/runtime properties:
-- 768-dimensional embeddings
-- 8192-token context window
-- worker pool constrained to `MAX_WORKERS = 8`
-
-Validated environment capture:
-- `pyproject.toml`
-- `requirements-lock.txt`
-
----
-
-# 2. Corpus Processing Architecture
-
-The analysis repository is organized around:
-1. extraction and cleaning
-2. segmentation and structured export
-3. section embedding generation
-4. route-level vector metrics
-
-Acquisition is external to the active analysis runtime spine, but the next-study beta pilot protocol is now defined for controlled live-manuscript intake.
-
----
-
-# 3. Existing Validated Benchmark Corpus
-
-The current implemented and validated pipeline proofs used a benchmark corpus under:
-
-```text
-data/raw/Route_A_Modern/
-data/raw/Route_B_Legacy/
-```
-
-These files support the current regression tests and Phase 2–5 validation surface.
-
----
-
-# 4. Beta Pilot Epoch Intake Protocol
-
-The current executed intake rule for live manuscripts is:
+Current live ingestion rule:
 
 ```text
 data/raw/<route>/<year>/<filename>.pdf
 ```
 
-Historical note:
-- earlier beta-protocol planning referenced `data/raw_pdfs/<route>/<year>/<filename>.pdf`
-- the successful 1960–1969 legacy acquisition batch was promoted into `data/raw/`
-
-Operational rules:
-- each manuscript must resolve to exactly one route and one year
-- manuscripts are not stored by epoch folder
-- unresolved route/year items are quarantined
-- epoch assignment is derived later from year
-
-Pilot sample logic is documented in `docs/BETA_PILOT_EPOCH_PROTOCOL.md`.
-
-Recommended pilot characteristics:
-- both routes represented
-- multiple years if available
-- heterogeneous PDF characteristics
-- enough corpus breadth to test whether multi-epoch coverage emerges in one or both routes
+Constraints:
+- each document maps to exactly one route
+- each document maps to exactly one year
+- unresolved items are quarantined
+- epoch assignment is derived post-ingestion
 
 ---
 
-# 5. Extraction and Cleaning
+## 5. Extraction and cleaning (Bin 02)
 
-Source manuscripts are processed through `bins/s02_processor/`.
-
-Implemented behaviors:
-- digital extraction where native text is available
-- OCR fallback for scan-derived legacy materials
-- reference-section truncation before downstream analysis
-- route-aware preparation for later segmentation
+Processing behaviors:
+- native text extraction when available
+- OCR fallback for scanned documents
+- reference-section truncation
+- route-aware preprocessing
 
 ---
 
-# 6. Segmentation and Structured Export
+## 6. Segmentation and structured export (Bin 03)
 
-The operational segmentation output relevant to downstream analysis is:
+Segment outputs:
 - `A_intro`
 - `A_methods`
 - `A_results`
 
-These are exported as flattened top-level JSON fields in structured artifacts under:
+Structured storage:
 
 ```text
-data/structured/<route_name>/<doc_id>.json
+data/structured/<route>/<year>/<file>.json
 ```
 
-Year resolution is delegated to `bins/s04_utils/year_resolution.py`.
-
-Year precedence:
-1. manifest year when available
-2. explicit legacy filename map
+### Year-resolution precedence
+1. manifest value
+2. legacy filename map
 3. supported filename parsing
-4. fail fast
+4. fail-fast if unresolved
 
 ---
 
-# 7. Phase 4 — Section Embedding Generation
+## 7. Embedding generation (Bin 03)
 
-Input:
-- validated structured JSON artifacts from `data/structured/<route_name>/`
+### Input
+- structured JSON artifacts
 
-Output:
-- validated embedding bundles at:
+### Output
+- embedding bundles discovered recursively under `data/embeddings/<route>/...`
 
-```text
-data/embeddings/<route_name>/<doc_id>.npz
+### Embedding bundle schema (authoritative)
+
+Each embedding bundle must contain:
+- `doc_id` (scalar)
+- `route` (scalar)
+- `section_labels` (1D array, `dtype=object`)
+- `embeddings` (2D array, shape = `[n_sections, 768]`, `dtype=float32`)
+- `source_path` (scalar)
+
+### Current implementation
+
+Single embedding per document:
+- `section_labels = ["document"]`
+- `embeddings.shape = (1, 768)`
+
+### Constraints
+`embeddings` must be:
+- 2D
+- `float32`
+- finite
+- width 768
+
+Additional constraints:
+- section-label alignment enforced
+- `doc_id` must be derived from source PDF path
+
+### Storage invariant
+- structured: `data/structured/<route>/<year>/<file>.json`
+- embeddings: recursively discoverable under `data/embeddings/<route>/...`
+
+---
+
+## 8. Metrics computation (Phase 5)
+
+Implementation:
+- `bins/s03_analysis/metrics.py`
+
+### Inputs
+- validated embedding bundles
+- manifest metadata
+
+### Eligibility conditions
+A document is eligible if:
+- `structured_status == success`
+- and
+  - `embedding_status == success`
+  - or an embedding bundle exists on disk
+
+### Embedding discovery
+
+The metrics stage supports both flat and nested layouts through recursive lookup.
+
+### Record expansion
+Each embedding bundle produces one or more `MetricRecord` objects:
+- one per `(section_label, embedding_vector)`
+
+---
+
+## 9. Epoch aggregation
+
+### Configuration
+- `EPOCH_WIDTH = 5`
+- `BASE_YEAR = 1960`
+
+### Epoch mapping
+
+```python
+epoch_start = year - ((year - 1960) % 5)
+epoch_end   = epoch_start + 4
 ```
 
-Bundle schema:
-- `doc_id`
-- `route`
-- `section_labels`
-- `embeddings`
-- `source_path`
+Examples:
+- `1960 → 1960–1964`
+- `1965 → 1965–1969`
 
----
+### Grouping
+Vectors are grouped by epoch.
 
-# 8. Phase 5 — Vector Metrics
+### Metrics per epoch
+- `epoch_counts`
+- `epoch_centroids`
+- `semantic_dispersion`
 
-Phase 5 is implemented in:
+### Innovation velocity
+Between adjacent epochs:
 
-```text
-bins/s03_analysis/metrics.py
+```python
+velocity = cosine_distance(centroid_i, centroid_j)
 ```
 
-Inputs:
-- validated Phase 4 embedding artifacts
-- manifest metadata from `data/manifests/pipeline_manifest.csv`
-
-Temporal join:
-- `year` is injected from the manifest row
-- `year` is not read from the embedding bundle
-
-Outputs:
-- route-level metrics artifacts written to:
-
-```text
-data/metrics/<route_name>/metrics.npz
-```
-
-Current interpretation boundary:
-- the validated current artifact state is singleton-epoch for both routes
-- therefore current analysis is descriptive/readiness-oriented rather than substantively inferential
+### Cardinality rule
+For `N` epochs:
+- `len(epoch_labels) = N`
+- `len(innovation_velocity) = N - 1`
 
 ---
 
-# 9. Beta Readiness Gate Before Broader Phase 6 Work
+## 10. Validated current metrics state
 
-Before broader inferential Phase 6 work is justified, the beta pilot must demonstrate:
-- deterministic intake under route/year organization
-- manifest integrity
-- successful Phases 2–5 execution on the live-manuscript pilot corpus
-- route-level metrics artifact generation and validation
-- evidence that epoch coverage expands beyond the current singleton-route artifact condition if the expanded corpus allows it
+### Route_A_Modern
+- epoch count: `1`
+- epoch labels: `['2025-2029']`
+- innovation-velocity count: `0`
 
----
-
-# 10. Reproducibility and Auditability
-
-The computational pipeline incorporates:
-- deterministic filesystem layout
-- explicit stage artifacts
-- manifest-driven execution tracking
-- validation layers for schema conformity
-- typed artifact boundaries
-- route-level output persistence
-- synchronized control documentation
-
-Current handoff/control docs:
-- `AUDIT_CONTEXT.md`
-- `RESEARCH_LOG.md`
-- `audit.md`
-- `REPO_KEEP_ARCHIVE_MAP.md`
-- `docs/BETA_PILOT_EPOCH_PROTOCOL.md`
-
+### Route_B_Legacy
+- epoch count: `2`
+- epoch labels: `['1960-1964', '1965-1969']`
+- innovation-velocity count: `1`
+- structured / embedding parity: `149 / 149`
 
 ---
 
-# 11. Legacy Acquisition Execution Update
+## 11. Phase 6 interpretive reporting and manuscript-facing output layer
 
-The 1960–1969 legacy decade batch has now been executed through the acquisition layer.
+Phase 6 operates strictly downstream of validated route-level metrics artifacts and does not modify upstream processing, embedding, or metrics-generation stages. Its function is interpretive, descriptive, and reporting-oriented.
 
-Verified operational result:
-- 149 legacy PDFs downloaded into staging
-- 149 legacy PDFs promoted into `data/raw/Route_B_Legacy/<year>/`
-- 149 manifest rows added to `data/manifests/pipeline_manifest.csv`
+### Inputs
+Phase 6 consumes validated route-level metrics artifacts from:
+- `data/metrics/Route_A_Modern/metrics.npz`
+- `data/metrics/Route_B_Legacy/metrics.npz`
 
-Methodological implication:
-- the project has moved from planned beta intake to a real executed legacy decade batch
-- the next active methods step is downstream processing of the newly added legacy rows through extraction, structured export, embeddings, and regenerated route-level metrics
+### Output classes
+
+#### 1. Descriptive summary outputs
+Generated under:
+- `analysis_outputs/summaries/`
+
+These summarize route identity, epoch count, source embedding file count, epoch-level dispersion, and route-internal innovation-velocity availability.
+
+#### 2. Machine-readable export outputs
+Generated under:
+- `analysis_outputs/tables/`
+
+These exports preserve route/epoch/transition values in structured form suitable for downstream validation, audit inspection, and reproducible reporting workflows.
+
+#### 3. Backend figure outputs
+Generated under:
+- `analysis_outputs/figures/`
+
+These provide non-manuscript visualization artifacts for inspection and validation of epoch-level semantic dispersion and route-internal innovation velocity where transitions exist.
+
+#### 4. APA manuscript outputs
+Generated under:
+- `manuscript/paper/tables/`
+- `manuscript/paper/figures/`
+
+These outputs provide APA 7–constrained reporting surfaces for manuscript integration.
+
+### Route constraints in Phase 6
+Phase 6 preserves the validated route structure rather than imposing artificial symmetry across routes.
+
+- `Route_A_Modern` currently contains one validated epoch and therefore contributes:
+  - epoch-level descriptive output
+  - no innovation-velocity transition output
+
+- `Route_B_Legacy` currently contains two validated epochs and therefore contributes:
+  - epoch-level descriptive output
+  - one validated adjacent-epoch innovation-velocity transition
+
+### Reporting standard
+All Phase 6 reporting artifacts intended for presentation or manuscript use are governed by an embedded **APA 7 compliance rule without exception**.
+
+### Boundary condition
+Phase 6 is descriptive and reporting-oriented. It should not be used to silently alter upstream metrics state, infer unsupported conclusions, or reopen stabilized engineering work unless a new contradiction is demonstrated by validated artifacts.

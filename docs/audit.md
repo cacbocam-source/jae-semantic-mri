@@ -1,12 +1,13 @@
 # Computational Infrastructure Audit
 
-Project: A Semantic MRI of Agricultural Education  
+Project: *A Semantic MRI of Agricultural Education*  
 Initial Build Date: 2026-03-10  
 Status: Supplemental workflow and infrastructure history only
 
-Authority note:
+## Authority note
 - `AUDIT_CONTEXT.md` is the canonical current-state handoff.
 - `RESEARCH_LOG.md` is the canonical chronological session log.
+- `DEBUGGING_AUDIT_2026-03-22.md` is the authoritative engineering record for the stabilization cycle completed on 2026-03-22.
 - This file preserves historical build and workflow milestones only.
 
 ---
@@ -87,4 +88,37 @@ Historical significance:
 - pilot intake, quarantine, post-Phase-5 validation, and closeout boundaries were documented
 - Phase 6 gating was tied explicitly to whether larger live-manuscript intake yields multi-epoch route coverage
 
-This milestone documents the authorized next-study protocol. It does not imply that the beta pilot has already been executed.
+This milestone documents the authorized next-study protocol. It does not imply that the beta pilot had already been executed.
+
+---
+
+## 2026-03-22 — Stabilization cycle and interpretive scaffold transition
+
+Historical significance:
+- final engineering defects across Bin 03, embedding schema, metrics aggregation, and manifest eligibility were resolved
+- `Route_B_Legacy` advanced from singleton artifact state to validated two-epoch aggregation
+- the Phase 6 interpretive scaffold was established and first route summaries were generated
+- the project transitioned from pipeline stabilization into a controlled interpretive analysis phase
+
+For full engineering detail, see:
+
+→ `DEBUGGING_AUDIT_2026-03-22.md`
+
+---
+
+## 2026-03-23 — Phase 6 reporting stack completed
+
+Historical significance:
+- machine-readable table exports were added under `analysis_outputs/tables/`
+- backend figure exports were added under `analysis_outputs/figures/`
+- APA manuscript tables were added under `manuscript/paper/tables/`
+- APA manuscript figures were added under `manuscript/paper/figures/`
+- the project moved from an initial interpretive scaffold to a validated descriptive reporting stack
+
+Interpretive significance:
+- the reporting surface now supports route-level descriptive summaries, epoch summaries, innovation-velocity summaries, and manuscript-facing APA outputs
+- this did not reopen stabilized engineering work in Phases 2–5
+- Phase 6 remained downstream of validated metrics artifacts throughout the extension cycle
+
+Reporting rule added:
+- all Phase 6 reporting artifacts are now governed by APA 7 compliance without exception

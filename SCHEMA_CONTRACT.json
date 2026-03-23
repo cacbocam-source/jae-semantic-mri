@@ -1,102 +1,16 @@
 {
-  "version": "2.3",
-  "date": "2026-03-20",
+  "version": "2.4",
+  "date": "2026-03-23",
   "project_root": "/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit",
   "routes": [
     "Route_A_Modern",
     "Route_B_Legacy"
   ],
-  "existing_benchmark_raw_paths": {
+  "existing_live_raw_paths": {
     "Route_A_Modern": "data/raw/Route_A_Modern/",
     "Route_B_Legacy": "data/raw/Route_B_Legacy/"
   },
-  "beta_pilot_raw_corpus_path_pattern": "data/raw_pdfs/{route}/{year}/{filename}.pdf",
-  "beta_manifest": {
-    "template_path": "data/manifests/beta_sample_manifest_template.csv",
-    "required_fields": [
-      "beta_batch_id",
-      "sample_id",
-      "route_target",
-      "sampling_bucket",
-      "risk_class",
-      "source_host",
-      "source_url",
-      "source_identifier",
-      "expected_filename",
-      "destination_stage_path",
-      "planned_year",
-      "expected_text_mode",
-      "pages_expected",
-      "inclusion_reason",
-      "manual_review_status",
-      "download_status",
-      "checksum_sha256",
-      "file_size_bytes",
-      "promotion_candidate",
-      "promotion_status",
-      "notes"
-    ],
-    "recommended_sampling_buckets": [
-      "modern_typical",
-      "legacy_typical",
-      "edge_case",
-      "random_audit"
-    ]
-  },
-  "year_resolution": {
-    "authoritative_source_when_available": "manifest_row.year",
-    "fallback_precedence": [
-      "explicit legacy filename map",
-      "supported filename parsing"
-    ],
-    "legacy_map_path": "data/manifests/legacy_filename_year_map.csv",
-    "supported_filename_patterns": [
-      "JAE_YYYY_NNNN.pdf",
-      "bare-year filenames such as YYYY.pdf",
-      "filenames containing exactly one valid standalone 4-digit year"
-    ],
-    "failure_mode": "raise error if year cannot be resolved deterministically"
-  },
-  "structured_export": {
-    "format": "json",
-    "path_pattern": "data/structured/{route_name}/{doc_id}.json",
-    "required_fields": [
-      "doc_id",
-      "source_filename",
-      "source_pdf_path",
-      "route",
-      "year",
-      "extraction_method",
-      "page_count",
-      "raw_text_length",
-      "clean_text_length",
-      "segmentation_strategy",
-      "A_intro",
-      "A_methods",
-      "A_results"
-    ],
-    "forbidden_fields_or_shapes": [
-      "sections",
-      "A_Intro",
-      "A_Methods",
-      "A_Results"
-    ]
-  },
-  "embedding_bundle": {
-    "format": "npz",
-    "path_pattern": "data/embeddings/{route_name}/{doc_id}.npz",
-    "required_fields": [
-      "doc_id",
-      "route",
-      "section_labels",
-      "embeddings",
-      "source_path"
-    ],
-    "notes": [
-      "Bundles store section embeddings, not a single manuscript-level vector.",
-      "Year is not read from embedding bundles by the Phase 5 metrics stage."
-    ]
-  },
+  "historical_beta_pilot_raw_corpus_path_pattern": "data/raw_pdfs/{route}/{year}/{filename}.pdf",
   "manifest": {
     "format": "csv",
     "path": "data/manifests/pipeline_manifest.csv",
@@ -114,17 +28,107 @@
     ],
     "phase5_temporal_join_field": "year"
   },
+  "year_resolution": {
+    "authoritative_source_when_available": "manifest_row.year",
+    "fallback_precedence": [
+      "explicit legacy filename map",
+      "supported filename parsing"
+    ],
+    "legacy_map_path": "data/manifests/legacy_filename_year_map.csv",
+    "supported_filename_patterns": [
+      "bare-year filenames such as YYYY.pdf",
+      "legacy route directory-derived year patterns",
+      "filenames containing exactly one valid standalone 4-digit year when supported by the resolver"
+    ],
+    "failure_mode": "raise error if year cannot be resolved deterministically"
+  },
+  "structured_export": {
+    "format": "json",
+    "path_pattern": "data/structured/{route_name}/{year}/{file}.json",
+    "required_payload_fields": [
+      "A_intro",
+      "A_methods",
+      "A_results"
+    ],
+    "forbidden_fields_or_shapes": [
+      "sections",
+      "A_Intro",
+      "A_Methods",
+      "A_Results"
+    ]
+  },
+  "embedding_bundle": {
+    "format": "npz",
+    "path_discovery_rule": "recursive discovery under data/embeddings/{route_name}/...",
+    "required_fields": [
+      "doc_id",
+      "route",
+      "section_labels",
+      "embeddings",
+      "source_path"
+    ],
+    "notes": [
+      "Current validated implementation stores one embedding per document.",
+      "Year is not read from embedding bundles by the Phase 5 metrics stage."
+    ]
+  },
   "metrics_artifact": {
     "format": "npz",
     "granularity": "route",
     "output_path_pattern": "data/metrics/{route_name}/metrics.npz",
     "input_dependency": "validated Phase 4 embedding bundles",
-    "year_source": "manifest-row join"
+    "year_source": "manifest-row join",
+    "required_fields": [
+      "corpus_name",
+      "route_name",
+      "epoch_labels",
+      "epoch_counts",
+      "epoch_centroids",
+      "semantic_dispersion",
+      "innovation_velocity",
+      "source_embedding_files",
+      "created_at_utc",
+      "metric_version"
+    ]
+  },
+  "phase6_reporting": {
+    "loader_boundary": "read-only over validated metrics artifacts",
+    "implemented_modules": [
+      "bins/s06_analysis/loaders.py",
+      "bins/s06_analysis/interpret.py",
+      "bins/s06_analysis/report_builder.py",
+      "bins/s06_analysis/figure_builder.py",
+      "bins/s06_analysis/apa_table_builder.py",
+      "bins/s06_analysis/apa_figure_builder.py"
+    ],
+    "backend_output_paths": [
+      "analysis_outputs/summaries/",
+      "analysis_outputs/tables/",
+      "analysis_outputs/figures/"
+    ],
+    "manuscript_output_paths": [
+      "manuscript/paper/tables/",
+      "manuscript/paper/figures/"
+    ],
+    "reporting_rule": "APA 7 compliance without exception for all reporting-facing artifacts"
   },
   "phase6_readiness": {
-    "current_state": "descriptive only until multi-epoch route coverage exists",
+    "current_state": "validated descriptive/reporting layer downstream of stable Phases 2-5",
     "current_validated_route_epoch_counts": {
       "Route_A_Modern": 1,
+      "Route_B_Legacy": 2
+    },
+    "current_validated_route_epoch_labels": {
+      "Route_A_Modern": [
+        "2025-2029"
+      ],
+      "Route_B_Legacy": [
+        "1960-1964",
+        "1965-1969"
+      ]
+    },
+    "current_innovation_velocity_counts": {
+      "Route_A_Modern": 0,
       "Route_B_Legacy": 1
     }
   }
