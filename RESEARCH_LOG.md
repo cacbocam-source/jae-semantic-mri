@@ -526,3 +526,51 @@ Phase 6 now includes:
 - APA manuscript figures
 
 This establishes the current validated reporting baseline for subsequent interpretive and manuscript-oriented work.
+
+---
+
+## 2026-03-23 — Route_A_Modern expansion, repair, and revalidation completed
+
+### Objective
+
+Expand `Route_A_Modern` beyond the singleton 2025–2029 state by admitting the validated modern batch, rerunning downstream stages, repairing the resulting year-resolution and manifest-identity defects, and regenerating Phase 6 outputs.
+
+### Work completed
+
+- promoted the validated modern scraper-beta batch into live `data/raw/Route_A_Modern/`
+- bridged the promoted modern rows into `data/manifests/pipeline_manifest.csv`
+- reran process and analyze phases on the expanded Route A corpus
+- identified and fixed a year-resolution defect for DOI-style modern filenames stored under year-bucket directories
+- identified and fixed a manifest-identity mismatch between bridge-created rows and analyze-seeded rows
+- restored a clean manifest state and re-bridged Route A using canonical pipeline `doc_id` values
+- reran analyze successfully on the repaired manifest
+- reran Phase 5 metrics successfully
+- regenerated backend Phase 6 outputs
+- regenerated APA manuscript tables and figures
+
+### Validation completed
+
+#### Route_A_Modern
+
+- `epoch_count = 6`
+- `epoch_labels = ['2000-2004', '2005-2009', '2010-2014', '2015-2019', '2020-2024', '2025-2029']`
+- `innovation_velocity_count = 5`
+- `source_embedding_file_count = 10`
+
+#### Route_B_Legacy
+
+- `epoch_count = 2`
+- `epoch_labels = ['1960-1964', '1965-1969']`
+- `innovation_velocity_count = 1`
+
+### Operational result
+
+- `Route_A_Modern` is no longer a singleton placeholder route
+- the project now supports bounded descriptive temporal interpretation for both routes
+- Phase 6 backend and APA reporting outputs have been successfully widened to reflect the expanded Route A state
+
+### Remaining cleanup
+
+- synchronize APA table note text with the new Route A state
+- synchronize current-state documentation surfaces with the new validated Route A state
+- treat manifest extract/embedding status writeback as a later hygiene pass rather than a current functional blocker

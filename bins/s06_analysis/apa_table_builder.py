@@ -29,6 +29,23 @@ def _format_plain_table(headers: list[str], rows: list[list[str]]) -> str:
     return "\n".join([header_line, rule_line, *body_lines])
 
 
+def _route_epoch_note_fragment(route_name: str) -> str:
+    summary = summarize_route(route_name)
+    labels = ", ".join(summary["epoch_labels"])
+    epoch_count = summary["epoch_count"]
+    return f"{route_name} spans {epoch_count} epochs ({labels})"
+
+
+def _route_transition_note_fragment(route_name: str) -> str:
+    summary = summarize_route(route_name)
+    transition_count = len(extract_velocity_table(load_metrics(route_name)))
+    if transition_count == 0:
+        return f"{route_name} contributes no adjacent-epoch transitions"
+    if transition_count == 1:
+        return f"{route_name} contributes 1 adjacent-epoch transition"
+    return f"{route_name} contributes {transition_count} adjacent-epoch transitions"
+
+
 def build_table_1_epoch_summary() -> Path:
     routes = ["Route_A_Modern", "Route_B_Legacy"]
 
@@ -49,6 +66,8 @@ def build_table_1_epoch_summary() -> Path:
                 ]
             )
 
+    epoch_note = "; ".join(_route_epoch_note_fragment(route_name) for route_name in routes)
+
     content = "\n".join(
         [
             "**Table 1**",
@@ -68,8 +87,7 @@ def build_table_1_epoch_summary() -> Path:
             (
                 "Note. Values are descriptive summaries derived from validated route-level metrics. "
                 "Semantic dispersion values are rounded to three decimals. "
-                "Route_A_Modern contains a single epoch and therefore does not contribute an "
-                "innovation-velocity transition."
+                f"In the current validated state, {epoch_note}."
             ),
             "",
         ]
@@ -84,10 +102,22 @@ def build_table_2_innovation_velocity() -> Path:
     routes = ["Route_A_Modern", "Route_B_Legacy"]
 
     rows: list[list[str]] = []
+    transition_fragments: list[str] = []
+
     for route_name in routes:
         summary = summarize_route(route_name)
         metrics = load_metrics(route_name)
         velocity_rows = extract_velocity_table(metrics)
+
+        transition_count = len(velocity_rows)
+        if transition_count == 0:
+            transition_fragments.append(f"{route_name} contributes no adjacent-epoch transitions")
+        elif transition_count == 1:
+            transition_fragments.append(f"{route_name} contributes 1 adjacent-epoch transition")
+        else:
+            transition_fragments.append(
+                f"{route_name} contributes {transition_count} adjacent-epoch transitions"
+            )
 
         for row in velocity_rows:
             rows.append(
@@ -98,6 +128,8 @@ def build_table_2_innovation_velocity() -> Path:
                     f"{row['velocity']:.3f}",
                 ]
             )
+
+    transition_note = "; ".join(transition_fragments)
 
     content = "\n".join(
         [
@@ -116,8 +148,8 @@ def build_table_2_innovation_velocity() -> Path:
             "",
             (
                 "Note. Innovation velocity is reported only where adjacent epoch transitions exist. "
-                "Values are rounded to three decimals. Route_A_Modern is omitted because its validated "
-                "state includes only one epoch."
+                "Values are rounded to three decimals. "
+                f"In the current validated state, {transition_note}."
             ),
             "",
         ]
