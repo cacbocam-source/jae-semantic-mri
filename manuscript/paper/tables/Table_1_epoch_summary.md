@@ -12,4 +12,4 @@ Route_A_Modern  JAE_Legacy_Audit  2025-2029  1   0.000
 Route_B_Legacy  JAE_Legacy_Audit  1960-1964  86  0.133              
 Route_B_Legacy  JAE_Legacy_Audit  1965-1969  63  0.131              
 
-Note. Values are descriptive summaries derived from validated route-level metrics. Semantic dispersion values are rounded to three decimals. Route_A_Modern contains a single epoch and therefore does not contribute an innovation-velocity transition.
+Note. Values are descriptive summaries derived from validated route-level metrics. Semantic dispersion values are rounded to three decimals. In the current validated state, Route_A_Modern spans 6 epochs (2000-2004, 2005-2009, 2010-2014, 2015-2019, 2020-2024, 2025-2029); Route_B_Legacy spans 2 epochs (1960-1964, 1965-1969).

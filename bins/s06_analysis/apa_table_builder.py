@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 from bins.s06_analysis.loaders import (
     extract_epoch_table,
@@ -15,35 +16,43 @@ APA_TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
 def _format_plain_table(headers: list[str], rows: list[list[str]]) -> str:
     widths: list[int] = []
-    for i, header in enumerate(headers):
-        cell_width = max((len(row[i]) for row in rows), default=0)
+
+    for index, header in enumerate(headers):
+        cell_width = max((len(row[index]) for row in rows), default=0)
         widths.append(max(len(header), cell_width))
 
-    header_line = "  ".join(header.ljust(widths[i]) for i, header in enumerate(headers))
-    rule_line = "  ".join("-" * widths[i] for i in range(len(headers)))
+    header_cells: list[str] = [
+        headers[index].ljust(widths[index]) for index in range(len(headers))
+    ]
+    rule_cells: list[str] = [
+        "-" * widths[index] for index in range(len(headers))
+    ]
+    body_lines: list[str] = []
 
-    body_lines = []
     for row in rows:
-        body_lines.append("  ".join(row[i].ljust(widths[i]) for i in range(len(headers))))
+        row_cells: list[str] = [
+            row[index].ljust(widths[index]) for index in range(len(headers))
+        ]
+        body_lines.append("  ".join(row_cells))
 
-    return "\n".join([header_line, rule_line, *body_lines])
+    return "\n".join(
+        [
+            "  ".join(header_cells),
+            "  ".join(rule_cells),
+            *body_lines,
+        ]
+    )
+
+
+def _summary(route_name: str) -> dict[str, Any]:
+    return summarize_route(route_name)
 
 
 def _route_epoch_note_fragment(route_name: str) -> str:
-    summary = summarize_route(route_name)
-    labels = ", ".join(summary["epoch_labels"])
-    epoch_count = summary["epoch_count"]
+    summary = _summary(route_name)
+    labels = ", ".join(cast(list[str], summary["epochs"]))
+    epoch_count = int(summary["epoch_count"])
     return f"{route_name} spans {epoch_count} epochs ({labels})"
-
-
-def _route_transition_note_fragment(route_name: str) -> str:
-    summary = summarize_route(route_name)
-    transition_count = len(extract_velocity_table(load_metrics(route_name)))
-    if transition_count == 0:
-        return f"{route_name} contributes no adjacent-epoch transitions"
-    if transition_count == 1:
-        return f"{route_name} contributes 1 adjacent-epoch transition"
-    return f"{route_name} contributes {transition_count} adjacent-epoch transitions"
 
 
 def build_table_1_epoch_summary() -> Path:
@@ -51,18 +60,19 @@ def build_table_1_epoch_summary() -> Path:
 
     rows: list[list[str]] = []
     for route_name in routes:
-        summary = summarize_route(route_name)
+        summary = _summary(route_name)
         metrics = load_metrics(route_name)
         epoch_rows = extract_epoch_table(metrics)
 
         for row in epoch_rows:
+            row_dict = cast(dict[str, Any], row)
             rows.append(
                 [
-                    summary["route_name"],
-                    summary["corpus_name"],
-                    row["epoch"],
-                    str(row["count"]),
-                    f"{row['dispersion']:.3f}",
+                    str(summary["route_name"]),
+                    str(summary["corpus_name"]),
+                    str(row_dict["epoch"]),
+                    str(row_dict["count"]),
+                    f"{float(row_dict['dispersion']):.3f}",
                 ]
             )
 
@@ -105,27 +115,32 @@ def build_table_2_innovation_velocity() -> Path:
     transition_fragments: list[str] = []
 
     for route_name in routes:
-        summary = summarize_route(route_name)
+        summary = _summary(route_name)
         metrics = load_metrics(route_name)
         velocity_rows = extract_velocity_table(metrics)
 
         transition_count = len(velocity_rows)
         if transition_count == 0:
-            transition_fragments.append(f"{route_name} contributes no adjacent-epoch transitions")
+            transition_fragments.append(
+                f"{route_name} contributes no adjacent-epoch transitions"
+            )
         elif transition_count == 1:
-            transition_fragments.append(f"{route_name} contributes 1 adjacent-epoch transition")
+            transition_fragments.append(
+                f"{route_name} contributes 1 adjacent-epoch transition"
+            )
         else:
             transition_fragments.append(
                 f"{route_name} contributes {transition_count} adjacent-epoch transitions"
             )
 
         for row in velocity_rows:
+            row_dict = cast(dict[str, Any], row)
             rows.append(
                 [
-                    summary["route_name"],
-                    summary["corpus_name"],
-                    row["transition"],
-                    f"{row['velocity']:.3f}",
+                    str(summary["route_name"]),
+                    str(summary["corpus_name"]),
+                    str(row_dict["transition"]),
+                    f"{float(row_dict['velocity']):.3f}",
                 ]
             )
 
