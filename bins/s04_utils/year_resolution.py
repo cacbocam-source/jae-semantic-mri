@@ -10,6 +10,7 @@ from config import END_YEAR, MANIFEST_DIR, START_YEAR
 
 JAE_FILENAME_RE = re.compile(r"^JAE_(?P<year>\d{4})_\d+\.pdf$", re.IGNORECASE)
 STANDALONE_YEAR_RE = re.compile(r"(?<!\d)(?P<year>\d{4})(?!\d)")
+DIRECTORY_YEAR_RE = re.compile(r"^(?P<year>(19|20)\d{2})$")
 
 LEGACY_YEAR_MAP_PATH = MANIFEST_DIR / "legacy_filename_year_map.csv"
 
@@ -106,6 +107,26 @@ def parse_year_from_filename(filename: str) -> int | None:
     return None
 
 
+def parse_year_from_parent_directories(source_path: str | Path) -> int | None:
+    """
+    Parse year from parent directory names, nearest parent first.
+
+    Supported form:
+    - .../<YEAR>/<filename>.pdf
+
+    Returns:
+        int | None
+    """
+    path = Path(source_path).expanduser()
+
+    for parent in path.parents:
+        match = DIRECTORY_YEAR_RE.fullmatch(parent.name.strip())
+        if match:
+            return _validate_year(int(match.group("year")))
+
+    return None
+
+
 def resolve_year(
     source_path: str | Path,
     manifest_row: Mapping[str, Any] | None = None,
@@ -116,14 +137,15 @@ def resolve_year(
     1. manifest_row['year'] if provided
     2. explicit legacy filename map
     3. supported filename parsing
-    4. fail fast if unresolved
+    4. supported parent-directory parsing
+    5. fail fast if unresolved
     """
     if manifest_row is not None:
         manifest_year = manifest_row.get("year")
         if manifest_year is not None and str(manifest_year).strip():
             return _coerce_year(manifest_year)
 
-    path = Path(source_path)
+    path = Path(source_path).expanduser()
     filename = path.name
 
     legacy_map = load_legacy_year_map()
@@ -133,6 +155,10 @@ def resolve_year(
     parsed = parse_year_from_filename(filename)
     if parsed is not None:
         return parsed
+
+    parent_parsed = parse_year_from_parent_directories(path)
+    if parent_parsed is not None:
+        return parent_parsed
 
     raise ValueError(
         f"Unable to resolve year for {filename!r}. "
@@ -145,5 +171,6 @@ __all__ = [
     "LEGACY_YEAR_MAP_PATH",
     "load_legacy_year_map",
     "parse_year_from_filename",
+    "parse_year_from_parent_directories",
     "resolve_year",
 ]
