@@ -574,3 +574,24 @@ Expand `Route_A_Modern` beyond the singleton 2025–2029 state by admitting the 
 - synchronize APA table note text with the new Route A state
 - synchronize current-state documentation surfaces with the new validated Route A state
 - treat manifest extract/embedding status writeback as a later hygiene pass rather than a current functional blocker
+
+
+## 2026-03-30 — Documentation authority reconciliation and Tier 00 closeout
+
+Work completed:
+- finalized the active documentation authority model
+- confirmed `AUDIT_CONTEXT.md` remains the canonical current-state surface
+- confirmed `PROJECT_STATE.md` is a derived snapshot rather than a controlling state file
+- rebuilt `ACQUISITION_LOG.md` as the current operational acquisition runbook
+- preserved root compatibility paths through symlink shims
+- formalized the documentation policy and Tier 00 authority order
+
+Operational result:
+- repo documentation now has one controlling current-state surface, one canonical chronology, and subordinate Tier 00 audit/runbook files
+- older path consumers remain supported without reopening engine work
+- the repo/doc/audit-trail closeout is complete pending standard verification and commit
+
+Interpretive note:
+- historical entries remain preserved as chronology and are not rewritten as if they were current-state controllers
+- current truth remains governed by `AUDIT_CONTEXT.md`
+

@@ -1,118 +1,98 @@
-> Role: Operational acquisition runbook
-> Authority: Subordinate to `AUDIT_CONTEXT.md`.
-> Update rule: Use for acquisition procedure and intake logging; when it conflicts with `AUDIT_CONTEXT.md`, the audit context controls.
-
-
 # Acquisition Log — Route_A_Modern
 
-Status: Current Tier 00 operational acquisition-state/control surface  
-Current-state authority: `AUDIT_CONTEXT.md`  
-Chronology: `RESEARCH_LOG.md`
+> Role: Operational acquisition runbook  
+> Authority: Subordinate to `AUDIT_CONTEXT.md`.  
+> If this file conflicts with `AUDIT_CONTEXT.md`, the audit context controls.
 
----
+## Current validated status
 
-## Current validated admitted modern corpus
+### Fully completed modern epoch
+- `2005–2009` is the first fully reconstructed and validated modern epoch.
 
-Current admitted modern source PDFs: **10**
+### Currently admitted modern year coverage
+Covered:
+- `2000`
+- `2001`
+- `2003`
+- `2005`
+- `2006`
+- `2007`
+- `2008`
+- `2009`
+- `2012`
+- `2013`
+- `2018`
+- `2022`
+- `2024`
+- `2026`
 
-Realized year coverage in the live admitted modern corpus:
-- 2000
-- 2001
-- 2003
-- 2007
-- 2012
-- 2013
-- 2018
-- 2022
-- 2024
-- 2026
+Missing:
+- `2002`
+- `2004`
+- `2010`
+- `2011`
+- `2014`
+- `2015`
+- `2016`
+- `2017`
+- `2019`
+- `2020`
+- `2021`
+- `2023`
+- `2025`
 
-Operational consequence:
-- `Route_A_Modern` is no longer a singleton placeholder route
-- Route A currently resolves into **6 epochs**
-- Route A currently contributes **5 adjacent-epoch innovation-velocity transitions**
-- modern closeout for 2000–2026 remains **deferred**, because live modern coverage is widened but not complete
+## Validated raw-storage forms
 
----
+The live Route_A_Modern intake contract accepts both of these forms:
 
-## Accepted live raw-storage forms
+1. Flat-file modern layout  
+   `data/raw/Route_A_Modern/<YEAR>.pdf`
 
-Validated live modern raw layouts:
+2. Year-bucket modern layout  
+   `data/raw/Route_A_Modern/<YEAR>/<file>.pdf`
 
-```text
-data/raw/Route_A_Modern/<YEAR>.pdf
-data/raw/Route_A_Modern/<YEAR>/<filename>.pdf
-```
+## Year-resolution contract
 
-Validated examples:
-- `data/raw/Route_A_Modern/2026.pdf -> 2026`
-- `data/raw/Route_A_Modern/2024/10.5032_jae.v65i4.2828.pdf -> 2024`
+Resolution precedence:
 
----
-
-## Year-resolution control rule
-
-Resolution precedence for modern files:
 1. manifest year when available
 2. supported filename parsing
-3. supported parent-directory parsing for admitted year-bucket modern files
-4. fail fast if unresolved
+3. supported parent-directory parsing for year-bucket modern paths
+4. fail-fast unresolved state
 
 Operational rule:
-- unsupported filenames must not silently guess a year
-- DOI-style filenames without an embedded year are valid only when stored under a year-bucket directory whose parent name is itself a valid year
 
----
+A DOI-style filename without an embedded four-digit year is valid if the file is stored under a year-bucket directory whose parent name is itself a valid year.
 
-## Controlled modern intake protocol
+Example:
+`data/raw/Route_A_Modern/2024/10.5032_jae.v65i4.2828.pdf -> 2024`
 
-1. Acquire PDFs only; do not treat HTML or abstract metadata as corpus substitutes.
-2. Stage and QC incoming files before promotion.
-3. Promote validated files into canonical raw storage under one of the accepted live modern layouts.
-4. Ensure each admitted file maps to exactly one route and one year.
-5. Bridge promoted files into `data/manifests/pipeline_manifest.csv` using the canonical pipeline `doc_id` contract derived from the source PDF path.
-6. Run downstream processing and analysis only after manifest integration is clean.
-7. Regenerate route-level metrics artifacts and Phase 6 outputs after corpus expansion.
-8. Synchronize current-state, methods, schema, and supplementary audit surfaces after validated expansion.
+## Intake rules
 
----
+- Accept only `.pdf` files.
+- Do not treat HTML or landing pages as corpus files.
+- One file = one article.
+- Do not silently guess a year.
+- Keep each acquisition year in its own staging folder during manual intake.
+- Mixed final raw-storage forms are allowed only within the validated contract above.
 
-## Downstream rebuild sequence after modern intake
+## Operational workflow
 
-```bash
-python3 main.py --phase process
-python3 main.py --phase analyze
-python3 bins/s03_analysis/metrics.py
-python3 bins/s06_analysis/report_builder.py
-python3 bins/s06_analysis/figure_builder.py
-python3 bins/s06_analysis/apa_table_builder.py
-python3 bins/s06_analysis/apa_figure_builder.py
-```
+1. retrieve PDFs for the target year
+2. stage them in a clean per-year working folder
+3. perform QC on file type and article identity
+4. place accepted files into the validated Route_A_Modern raw layout
+5. run manifest integration according to the active repo workflow
+6. run:
+   - `python3 main.py --phase process`
+   - `python3 main.py --phase analyze`
+7. regenerate downstream state surfaces as required by the current pipeline
+8. verify outputs before treating the intake as live
 
-Generated output surfaces affected by widened intake:
-- `analysis_outputs/summaries/`
-- `analysis_outputs/tables/`
-- `analysis_outputs/figures/`
-- `manuscript/paper/tables/`
-- `manuscript/paper/figures/`
+## Scope note
 
----
-
-## Guardrails
-
-- one source PDF = one document identity
-- `doc_id` must derive from the source PDF path
-- manifest integration and analysis execution must use the same `doc_id` contract
-- parent-directory parsing is supported for admitted year-bucket modern files
-- unresolved year cases must fail fast rather than guess
-- generated documentation surfaces must not be manually edited at their fixed builder paths
-
----
-
-## Current next-step boundary
-
-The next correct work surface is not a false modern-complete closeout memo. It is:
-- continued controlled corpus expansion where needed
-- Phase 6 output/documentation synchronization
-- restrained interpretive refinement within the validated descriptive boundary
-- legacy-decade expansion without reopening stabilized engineering work unless contradictory evidence appears
+This file is an operational runbook for acquisition-state work only.  
+It does not override:
+- current-state authority in `AUDIT_CONTEXT.md`
+- chronology in `RESEARCH_LOG.md`
+- methods/schema contracts in `METHODS_PIPELINE.md`, `DATA_SCHEMA.md`, and `SCHEMA_CONTRACT.json`

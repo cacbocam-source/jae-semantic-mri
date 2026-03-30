@@ -13,7 +13,7 @@
 - `docs/00_state/audit.md` = supplemental historical infrastructure audit
 
 ## Compatibility policy
-- Old paths that have existing consumers should remain symlinks until a later cleanup phase.
+- Old paths that have active consumers remain symlinks until a later cleanup phase.
 - Do not delete compatibility shims during Phase 1 stabilization.
 
 ## Generated docs
@@ -21,7 +21,14 @@
 - `docs/CORPUS_COVERAGE.md`
 - `docs/PIPELINE_AUDIT.md`
 
-These remain at their current paths until builders and any dependent scripts are patched.
+These remain at their current paths until builders and dependent scripts are patched.
+
+## Editing rules
+- `AUDIT_CONTEXT.md`: edit manually when current-state authority changes.
+- `RESEARCH_LOG.md`: append only; do not rewrite historical entries except to correct obvious clerical defects.
+- `docs/00_state/ACQUISITION_LOG.md`: edit manually as the operational runbook for acquisition-state procedure.
+- `docs/00_state/PROJECT_STATE.md`: derived summary only; must defer to `AUDIT_CONTEXT.md`.
+- generated docs must not be manually edited unless the builder path is intentionally bypassed and that choice is explicitly documented.
 
 ## Deletion policy
 Archive first. Delete only after:

@@ -1,21 +1,33 @@
-> Role: Derived executive snapshot
-> Authority: Non-canonical. For controlling current-state interpretation, defer to `AUDIT_CONTEXT.md`.
+# JAE_Legacy_Audit — Project State (Derived Snapshot)
+
+> Role: Derived executive snapshot  
+> Authority: Non-canonical. For controlling current-state interpretation, defer to `AUDIT_CONTEXT.md`.  
 > Update rule: Revise only after current-state, chronology, and generated audit surfaces are reconciled.
 
-# JAE_Legacy_Audit — Project State (Validated Snapshot)
+## System status
+- pipeline operational
+- manifest integrity validated
+- route-level metrics validated
+- Phase 6 backend and APA reporting surfaces active
 
-## System Status
-- Pipeline: Operational
-- NVMe: Verified
-- Manifest integrity: Valid
-- Phase coupling: Stable (Process → Analyze → Metrics → Reporting)
+## Current validated route state
 
-## Completed Acquisition (Route_A_Modern)
+### Route_A_Modern
+- 6 validated epochs
+- 5 validated adjacent innovation-velocity transitions
+- 10 admitted source embedding files
 
-### Fully Completed Epochs
-- 2005–2009 ✅ COMPLETE
+### Route_B_Legacy
+- 2 validated epochs
+- 1 validated adjacent innovation-velocity transition
+- structured / embedding parity validated for the admitted legacy set
 
-### Year Coverage (Route_A_Modern)
+## Modern coverage snapshot
+
+### Fully completed epoch
+- `2005–2009` ✅ complete
+
+### Year coverage
 | Year | Status |
 |------|--------|
 | 2000 | Covered |
@@ -46,75 +58,17 @@
 | 2025 | Missing |
 | 2026 | Covered |
 
----
+## Current reporting state
+- backend summaries generated
+- machine-readable tables generated
+- backend figures generated
+- APA manuscript tables generated
+- APA manuscript figures generated
 
-## Key Milestone Achieved
+## Interpretation boundary
+- descriptive route-internal reporting is justified
+- strong inferential claims remain constrained by uneven corpus coverage
 
-**Epoch 2005–2009 fully reconstructed and validated**
-
-- Total documents: **136**
-- Semantic dispersion: **0.133**
-- APA outputs synchronized
-- Year-gap artifact corrected and regenerated
-
----
-
-## Pipeline Validation Status
-
-### Phase 02 (Process)
-- All Route_A_Modern files processed successfully
-- Output format: `.txt`
-- No extraction failures observed
-
-### Phase 03 (Analyze)
-- Structured export: ✅
-- Embeddings: ✅
-- Manifest updates: ✅
-
-### Metrics Layer
-- `metrics.npz` regenerated
-- Innovation velocity validated
-- No schema violations
-
-### Phase 06 Outputs
-- Tables: Generated
-- Figures: Generated
-- APA artifacts: Generated
-
----
-
-## Critical Fixes Implemented
-
-1. **Embedding Pipeline Fix**
-   - Corrected `embed_single_file()` to use original `pdf_path`
-
-2. **Year Inference Stabilization**
-   - Robust handling of:
-     - folder-based years
-     - filename-based years
-
-3. **Manifest Integrity**
-   - Strict doc_id deduplication enforced
-   - Stage tracking normalized
-
-4. **Year-Gap Artifact**
-   - Previously stale
-   - Now regenerated from ledger source-of-truth
-
----
-
-## System Confidence
-
-- Process integrity: HIGH
-- Analysis integrity: HIGH
-- Metrics validity: HIGH
-- Reporting fidelity: HIGH
-
----
-
-## Next Target
-
-> Begin reconstruction of **2010–2014 epoch**
-
-Immediate next step:
-- Acquire **2010 full article set**
+## Next-step rule
+Do not treat this file as the operational scheduler.
+For the current official next work surface, defer to `AUDIT_CONTEXT.md`.
