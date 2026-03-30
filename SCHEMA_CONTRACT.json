@@ -1,6 +1,6 @@
 {
-  "version": "2.4",
-  "date": "2026-03-23",
+  "version": "2.5",
+  "date": "2026-03-30",
   "project_root": "/Volumes/Clemons_Data/_Anchors/Research_Data/JAE_Legacy_Audit",
   "routes": [
     "Route_A_Modern",
@@ -32,19 +32,22 @@
     "authoritative_source_when_available": "manifest_row.year",
     "fallback_precedence": [
       "explicit legacy filename map",
-      "supported filename parsing"
+      "supported filename parsing",
+      "supported parent-directory parsing"
     ],
     "legacy_map_path": "data/manifests/legacy_filename_year_map.csv",
     "supported_filename_patterns": [
       "bare-year filenames such as YYYY.pdf",
-      "legacy route directory-derived year patterns",
-      "filenames containing exactly one valid standalone 4-digit year when supported by the resolver"
+      "filenames containing exactly one valid standalone 4-digit year when supported by the resolver",
+      "admitted year-bucket modern files whose parent directory name is a valid year",
+      "legacy route directory-derived year patterns"
     ],
     "failure_mode": "raise error if year cannot be resolved deterministically"
   },
   "structured_export": {
     "format": "json",
     "path_pattern": "data/structured/{route_name}/{year}/{file}.json",
+    "validated_flat_modern_carryover": "data/structured/Route_A_Modern/2026.json",
     "required_payload_fields": [
       "A_intro",
       "A_methods",
@@ -67,6 +70,13 @@
       "embeddings",
       "source_path"
     ],
+    "validated_constraints": {
+      "vector_width": 768,
+      "dtype": "float32",
+      "ndim": 2,
+      "section_label_alignment": true,
+      "doc_id_source": "source PDF path"
+    },
     "notes": [
       "Current validated implementation stores one embedding per document.",
       "Year is not read from embedding bundles by the Phase 5 metrics stage."
@@ -89,7 +99,9 @@
       "source_embedding_files",
       "created_at_utc",
       "metric_version"
-    ]
+    ],
+    "epoch_width": 5,
+    "base_year": 1960
   },
   "phase6_reporting": {
     "loader_boundary": "read-only over validated metrics artifacts",
@@ -115,11 +127,16 @@
   "phase6_readiness": {
     "current_state": "validated descriptive/reporting layer downstream of stable Phases 2-5",
     "current_validated_route_epoch_counts": {
-      "Route_A_Modern": 1,
+      "Route_A_Modern": 6,
       "Route_B_Legacy": 2
     },
     "current_validated_route_epoch_labels": {
       "Route_A_Modern": [
+        "2000-2004",
+        "2005-2009",
+        "2010-2014",
+        "2015-2019",
+        "2020-2024",
         "2025-2029"
       ],
       "Route_B_Legacy": [
@@ -128,8 +145,13 @@
       ]
     },
     "current_innovation_velocity_counts": {
-      "Route_A_Modern": 0,
+      "Route_A_Modern": 5,
       "Route_B_Legacy": 1
-    }
+    },
+    "current_source_embedding_file_counts": {
+      "Route_A_Modern": 10,
+      "Route_B_Legacy": 149
+    },
+    "interpretation_boundary": "descriptive and reporting-oriented only; broader inference remains limited by uneven corpus coverage"
   }
 }
