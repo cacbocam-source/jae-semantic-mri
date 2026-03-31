@@ -1,0 +1,4 @@
+route_name,corpus_name,transition,velocity
+Route_B_Legacy,JAE_Legacy_Audit,1960-1964 -> 1965-1969,0.004449395462870598
+Route_B_Legacy,JAE_Legacy_Audit,1965-1969 -> 1970-1974,0.0051316022872924805
+Route_B_Legacy,JAE_Legacy_Audit,1970-1974 -> 1975-1979,0.004309825133532286
