@@ -1,33 +1,24 @@
 # GitHub → Zenodo Release Checklist
 
 ## Git state
-- [ ] Working tree is clean
-- [ ] Freeze commit is present: `71217d3`
-- [ ] Tag exists: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r1`
+- [ ] Working tree is clean enough for release
+- [ ] Canonical analysis freeze commit remains: `71217d3`
+- [ ] Public release tag exists: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
 
 ## Metadata state
-- [ ] Inspect whether `.zenodo.json` exists
-- [ ] Inspect whether `CITATION.cff` exists
-- [ ] If both exist, confirm `.zenodo.json` is authoritative
-- [ ] Validate creators
-- [ ] Validate title
-- [ ] Validate license
-- [ ] Validate description / abstract
-- [ ] Validate related identifiers / grants if required
+- [ ] `.zenodo.json` present
+- [ ] `CITATION.cff` present
+- [ ] Title matches public release title
+- [ ] Contributor list matches:
+  - Clemons, C. A.
+  - McKibben, J. D.
+  - Lindner, J. R.
+- [ ] Description is correct
+- [ ] Keywords are correct
 
 ## Release state
-- [ ] Create GitHub release from the final tag
-- [ ] Ensure release notes mention:
-  - real nomic embeddings
-  - content-only input fields
-  - bridge transition analysis
-- [ ] Wait for Zenodo archive creation
-- [ ] Inspect Zenodo metadata
-- [ ] Edit Zenodo metadata if needed
-- [ ] Record DOI, concept DOI, and Zenodo URL
-
-## Final handoff
-- [ ] Return DOI and concept DOI
-- [ ] Return GitHub release URL
-- [ ] Return Zenodo record URL
-- [ ] Confirm archived version corresponds to commit `71217d3`
+- [ ] Push `main`
+- [ ] Push `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
+- [ ] Create GitHub release from r3 tag
+- [ ] Verify Zenodo ingest
+- [ ] Capture DOI, concept DOI, GitHub release URL, and Zenodo record URL

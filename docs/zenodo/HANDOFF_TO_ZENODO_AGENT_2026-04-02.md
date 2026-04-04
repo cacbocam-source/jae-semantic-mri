@@ -1,62 +1,55 @@
-# Handoff to Zenodo Agent — Full Corpus Freeze
+# Handoff to Zenodo Agent — Journal Corpus Audit Full Corpus Release
 
-## Freeze identity
+## Release identity
 
-- Freeze commit: `71217d3`
-- Preferred release tag: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r1`
-- Freeze date: 2026-04-02
+- Canonical analysis freeze commit: `71217d3`
+- Public release-preparation lineage head: current `HEAD`
+- Preferred public release tag: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
 
 ## Project identity
 
-Repository: `JAE_Legacy_Audit`
+Repository: `jae-semantic-mri`
 
-Study scope: full Journal of Agricultural Education corpus reconstructed across 1960–2026.
+Public release title:
+**Journal Corpus Audit: Full-Corpus Reconstruction and Semantic Analysis, 1960–2026**
 
-Route split:
-- `Route_B_Legacy` = 1960–1999
-- `Route_A_Modern` = 2000–2026
+## Contributor line
 
-## What changed in this freeze
+- Clemons, C. A.
+- McKibben, J. D.
+- Lindner, J. R.
 
-This freeze supersedes prior pseudo-valid rebuilds.
+## What this release contains
 
-Critical methodological corrections:
-1. Placeholder/random embedding generation was removed.
-2. Real `nomic-ai/nomic-embed-text-v1.5` document embeddings are now used.
-3. Embedding input is now content-only:
+This release is the first full-corpus public package built from:
+
+1. real `nomic-embed-text-v1.5` document embeddings
+2. content-only article section extraction:
    - `A_intro`
    - `A_methods`
    - `A_results`
-4. Route metrics were rebuilt from fresh embeddings.
-5. APA outputs were rebuilt.
-6. A legacy-to-modern bridge analysis was added for the key hinge transition:
-   - `1995-1999 -> 2000-2004`
+3. regenerated route-level metrics
+4. regenerated APA outputs
+5. explicit legacy-to-modern bridge analysis
 
-## Current analytic status
+## Core substantive feature
 
-This is the first full-corpus freeze built from:
-- real nomic embeddings
-- content-only structured text extraction
-- fresh route metrics
-- explicit bridge transition analysis
+The release includes a dedicated bridge estimate for the key hinge transition:
 
-## Key release artifacts
+- `1995-1999 -> 2000-2004`
+
+This bridge is reported separately from route-internal innovation velocity.
+
+## Canonical release artifacts
 
 ### Code
 - `bins/s03_analysis/embedder.py`
 - `bins/s06_analysis/bridge_analysis.py`
 
-### Corpus ledger
+### Ledger and metrics
 - `data/manifests/pipeline_manifest.csv`
-
-### Metrics
-Live paths:
 - `data/metrics/Route_A_Modern/metrics.npz`
 - `data/metrics/Route_B_Legacy/metrics.npz`
-
-Checkpoint copies committed for freeze stability:
-- `checkpoints/2026-04-02_full_corpus_nomic_content_only_bridge/metrics.npz`
-- `checkpoints/2026-04-02_full_corpus_nomic_content_only_bridge/pipeline_manifest.csv`
 
 ### Analysis tables
 - `analysis_outputs/tables/Route_A_Modern_epoch_summary.csv`
@@ -75,48 +68,25 @@ Checkpoint copies committed for freeze stability:
 - `manuscript/paper/figures/Figure_2_innovation_velocity.md`
 - `manuscript/paper/figures/Figure_3_bridge_transition.md`
 
-## Key substantive result for Zenodo/record description
+## Zenodo metadata guidance
 
-The previously missing hinge transition is now quantified separately:
+This repository now includes both:
+- `.zenodo.json`
+- `CITATION.cff`
 
-- Legacy-to-modern bridge transition:
-  - `1995-1999 -> 2000-2004`
-  - reported in `Table_3_bridge_transition.md`
+For the GitHub→Zenodo release, `.zenodo.json` is the authoritative Zenodo metadata source.
 
-This bridge value must be preserved in any release description and handoff narrative because it is central to the study’s deceleration argument.
-
-## What the Zenodo agent should do
-
-1. Verify the release tag exists:
-   - `checkpoint-full-corpus-nomic-content-only-2026-04-02-r1`
-2. Ensure the GitHub release is created from that tag.
-3. Verify repository metadata source:
-   - if both `.zenodo.json` and `CITATION.cff` exist, Zenodo will use `.zenodo.json`
-4. Validate metadata before release:
-   - creators
-   - title
-   - description
-   - license
-   - keywords
-   - funding / related identifiers if needed
-5. Archive the GitHub release into Zenodo.
-6. After Zenodo ingest, inspect metadata and edit if needed.
-7. Capture:
-   - Zenodo DOI
-   - concept DOI
-   - record URL
-   - release URL
-8. Return those identifiers to the main workflow.
-
-## Metadata note
-
-Zenodo release metadata priority:
-1. `.zenodo.json`
-2. `CITATION.cff`
-3. GitHub repository license / metadata fallback
-
-If release ingestion fails, first inspect `.zenodo.json` and `CITATION.cff` validity.
-
-## Recommended short repository description for Zenodo
+## Recommended release description
 
 Full Journal of Agricultural Education corpus (1960–2026) reconstructed and analyzed with real `nomic-embed-text-v1.5` document embeddings using content-only structured sections (`A_intro`, `A_methods`, `A_results`), route-level semantic dispersion and innovation-velocity metrics, APA-formatted outputs, and an explicit legacy-to-modern bridge transition analysis.
+
+## Final Zenodo tasks
+
+1. Create GitHub release from `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
+2. Verify Zenodo ingest
+3. Capture:
+   - GitHub release URL
+   - Zenodo record URL
+   - Version DOI
+   - Concept DOI
+4. Return those identifiers to the main workflow
