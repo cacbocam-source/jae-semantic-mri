@@ -4,7 +4,7 @@
 
 - Canonical analysis freeze commit: `71217d3`
 - Public release-preparation lineage head: current `HEAD`
-- Preferred public release tag: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
+- Preferred public release tag: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r4`
 
 ## Project identity
 
@@ -82,7 +82,7 @@ Full Journal of Agricultural Education corpus (1960–2026) reconstructed and an
 
 ## Final Zenodo tasks
 
-1. Create GitHub release from `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
+1. Create GitHub release from `checkpoint-full-corpus-nomic-content-only-2026-04-02-r4`
 2. Verify Zenodo ingest
 3. Capture:
    - GitHub release URL

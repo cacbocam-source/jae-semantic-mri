@@ -3,7 +3,7 @@
 ## Core identities
 
 - Canonical analysis freeze commit: `71217d3`
-- Public release tag target: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r3`
+- Public release tag target: `checkpoint-full-corpus-nomic-content-only-2026-04-02-r4`
 
 ## Audit summary
 
