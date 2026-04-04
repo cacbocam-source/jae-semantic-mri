@@ -1,0 +1,29 @@
+{
+  "title": "Journal Corpus Audit: Full-Corpus Reconstruction and Semantic Analysis, 1960–2026",
+  "creators": [
+    {
+      "name": "Clemons, C. A."
+    },
+    {
+      "name": "McKibben, J. D."
+    },
+    {
+      "name": "Lindner, J. R."
+    }
+  ],
+  "description": "Full Journal of Agricultural Education corpus (1960–2026) reconstructed and analyzed with real nomic-embed-text-v1.5 document embeddings using content-only structured sections (A_intro, A_methods, A_results), route-level semantic dispersion and innovation-velocity metrics, APA-formatted outputs, and an explicit legacy-to-modern bridge transition analysis.",
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "Journal of Agricultural Education",
+    "agricultural education",
+    "semantic analysis",
+    "corpus reconstruction",
+    "nomic embeddings",
+    "innovation velocity",
+    "semantic dispersion",
+    "bridge transition",
+    "1960-2026"
+  ],
+  "notes": "Canonical freeze commit: 71217d3. Preferred release tag: checkpoint-full-corpus-nomic-content-only-2026-04-02-r2."
+}

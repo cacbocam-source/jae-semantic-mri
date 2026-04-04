@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the GitHub release / Zenodo archive corresponding to the tagged freeze."
+title: "Journal Corpus Audit: Full-Corpus Reconstruction and Semantic Analysis, 1960–2026"
+type: software
+authors:
+  - family-names: Clemons
+    given-names: C. A.
+  - family-names: McKibben
+    given-names: J. D.
+  - family-names: Lindner
+    given-names: J. R.
+repository-code: "https://github.com/cacbocam-source/jae-semantic-mri"
+abstract: >
+  Full Journal of Agricultural Education corpus (1960–2026) reconstructed and
+  analyzed with real nomic-embed-text-v1.5 document embeddings using content-only
+  structured sections (A_intro, A_methods, A_results), route-level semantic
+  dispersion and innovation-velocity metrics, APA-formatted outputs, and an explicit
+  legacy-to-modern bridge transition analysis.
+keywords:
+  - Journal of Agricultural Education
+  - agricultural education
+  - semantic analysis
+  - corpus reconstruction
+  - nomic embeddings
+  - innovation velocity
+  - semantic dispersion
+  - bridge transition
+  - 1960-2026
