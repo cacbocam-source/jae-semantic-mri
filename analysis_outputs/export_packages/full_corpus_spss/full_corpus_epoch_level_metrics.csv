@@ -1,0 +1,15 @@
+epoch,count,dispersion,route_name,analysis_family
+2000-2004,170,0.10114394873380661,Route_A_Modern,core_epoch_metrics
+2005-2009,208,0.09599142521619797,Route_A_Modern,core_epoch_metrics
+2010-2014,299,0.079790860414505,Route_A_Modern,core_epoch_metrics
+2015-2019,429,0.07479400932788849,Route_A_Modern,core_epoch_metrics
+2020-2024,364,0.07265394926071167,Route_A_Modern,core_epoch_metrics
+2025-2029,157,0.06697557121515274,Route_A_Modern,core_epoch_metrics
+1960-1964,86,0.13524781167507172,Route_B_Legacy,core_epoch_metrics
+1965-1969,63,0.15794526040554047,Route_B_Legacy,core_epoch_metrics
+1970-1974,71,0.1651913970708847,Route_B_Legacy,core_epoch_metrics
+1975-1979,76,0.14618204534053802,Route_B_Legacy,core_epoch_metrics
+1980-1984,134,0.15337388217449188,Route_B_Legacy,core_epoch_metrics
+1985-1989,169,0.1697399914264679,Route_B_Legacy,core_epoch_metrics
+1990-1994,204,0.16983410716056824,Route_B_Legacy,core_epoch_metrics
+1995-1999,158,0.11365010589361191,Route_B_Legacy,core_epoch_metrics

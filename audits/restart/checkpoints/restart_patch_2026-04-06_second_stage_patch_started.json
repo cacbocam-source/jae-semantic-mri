@@ -1,0 +1,38 @@
+{
+  "exact_moment_truth": {
+    "active_blocker_reinforced": {
+      "name": "Route_B_Legacy_era_3_section_localization_failure",
+      "status": "active",
+      "count": 1,
+      "type": "legacy_corrective_lane",
+      "details": "Second-stage legacy corrective patch started. Focus is stronger legacy heading normalization plus early-body intro fallback for readable two-column OCR-era PDFs."
+    },
+    "legacy_correction_state": {
+      "status": "second_stage_patch_started",
+      "working_hypothesis": "Remaining readable era_3 failures are being missed by rigid heading normalization and weak early-body fallback, not by total OCR collapse alone.",
+      "second_stage_patch": [
+        "expand legacy heading normalization",
+        "stronger early-body intro fallback"
+      ]
+    }
+  },
+  "authoritative_next_execution_order": [
+    "Patch bins/s02_processor/segmenter.py for second-stage legacy recovery",
+    "Compile and inspect the patched era_3 logic",
+    "Run a short diagnostic validation on sampled failures before any long rerun",
+    "Decide whether a full targeted rerun is justified after the second-stage patch"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-06",
+      "event": "legacy_second_stage_patch_started",
+      "details": {
+        "fixpoint": "bins/s02_processor/segmenter.py::_segment_era_3",
+        "focus": [
+          "legacy heading normalization",
+          "early-body intro fallback"
+        ]
+      }
+    }
+  ]
+}

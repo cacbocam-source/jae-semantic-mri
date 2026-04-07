@@ -1,0 +1,13 @@
+transition,velocity,route_name,analysis_family
+2000-2004 -> 2005-2009,0.0026107700541615486,Route_A_Modern,core_velocity_metrics
+2005-2009 -> 2010-2014,0.003127048257738352,Route_A_Modern,core_velocity_metrics
+2010-2014 -> 2015-2019,0.004749556537717581,Route_A_Modern,core_velocity_metrics
+2015-2019 -> 2020-2024,0.0014730216935276985,Route_A_Modern,core_velocity_metrics
+2020-2024 -> 2025-2029,0.0016607149736955762,Route_A_Modern,core_velocity_metrics
+1960-1964 -> 1965-1969,0.009690101258456707,Route_B_Legacy,core_velocity_metrics
+1965-1969 -> 1970-1974,0.010291813872754574,Route_B_Legacy,core_velocity_metrics
+1970-1974 -> 1975-1979,0.013770321384072304,Route_B_Legacy,core_velocity_metrics
+1975-1979 -> 1980-1984,0.01678387075662613,Route_B_Legacy,core_velocity_metrics
+1980-1984 -> 1985-1989,0.009860147722065449,Route_B_Legacy,core_velocity_metrics
+1985-1989 -> 1990-1994,0.008750369772315025,Route_B_Legacy,core_velocity_metrics
+1990-1994 -> 1995-1999,0.07347771525382996,Route_B_Legacy,core_velocity_metrics

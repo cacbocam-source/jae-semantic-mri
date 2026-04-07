@@ -747,3 +747,196 @@ def run_phase5_metrics() -> None:
 
 if __name__ == "__main__":
     run_phase5_metrics()
+
+
+# === Phase 05 freshness / staleness wrapper ===
+
+_ORIGINAL_PROCESS_ROUTE_METRICS = process_route_metrics
+
+
+def _resolve_embedding_bundle_path_from_manifest_row(manifest_row: Any) -> Path:
+    from config import EMBEDDINGS_DIR, RAW_DIR
+
+    source_pdf_path_raw = _row_get(manifest_row, "source_pdf_path").strip()
+    doc_id = _row_doc_id(manifest_row)
+
+    if not source_pdf_path_raw:
+        raise ValueError("Manifest row missing source_pdf_path")
+    if not doc_id:
+        raise ValueError("Manifest row missing doc_id")
+
+    source_pdf_path = Path(source_pdf_path_raw).expanduser().resolve()
+    relative_pdf = source_pdf_path.relative_to(RAW_DIR)
+    return (EMBEDDINGS_DIR / relative_pdf.parent / f"{doc_id}.npz").resolve()
+
+
+def _collect_route_metric_inputs(
+    route_name: str,
+    manifest_rows: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], list[Path], list[str]]:
+    eligible_rows = [
+        row for row in manifest_rows
+        if _row_route(row) == route_name and _is_metric_eligible(row)
+    ]
+
+    bundle_paths: list[Path] = []
+    missing_messages: list[str] = []
+
+    for row in eligible_rows:
+        try:
+            bundle_path = _resolve_embedding_bundle_path_from_manifest_row(row)
+        except Exception as exc:
+            missing_messages.append(
+                f"doc_id={_row_doc_id(row) or '<missing>'}: could not resolve embedding path ({exc})"
+            )
+            continue
+
+        if bundle_path.exists():
+            bundle_paths.append(bundle_path)
+        else:
+            missing_messages.append(
+                f"doc_id={_row_doc_id(row) or '<missing>'}: missing embedding bundle at {bundle_path}"
+            )
+
+    deduped_paths = sorted({path.resolve() for path in bundle_paths})
+    return eligible_rows, deduped_paths, missing_messages
+
+
+def _artifact_source_files_from_payload(payload: dict[str, Any]) -> list[str]:
+    summary = summarize_metrics_artifact_payload(payload)
+    source_embedding_files = summary.get("source_embedding_files")
+    if not source_embedding_files:
+        return []
+    return sorted(
+        {
+            str(Path(path).expanduser().resolve())
+            for path in source_embedding_files
+            if path
+        }
+    )
+
+
+def _freshness_messages(
+    route_name: str,
+    manifest_rows: list[dict[str, str]],
+) -> list[str]:
+    output_path = build_metrics_output_path(route_name)
+    eligible_rows, current_bundle_paths, missing_messages = _collect_route_metric_inputs(
+        route_name, manifest_rows
+    )
+
+    messages: list[str] = []
+
+    if not eligible_rows:
+        messages.append(
+            f"[METRICS][WARN] route={route_name} has no current metric-eligible rows; freshness cannot be evaluated."
+        )
+        return messages
+
+    if missing_messages:
+        messages.append(
+            f"[METRICS][WARN] route={route_name} has {len(missing_messages)} metric-eligible rows without a resolvable on-disk embedding bundle."
+        )
+
+    if not output_path.exists():
+        messages.append(
+            f"[METRICS][WARN] route={route_name} has no existing metrics artifact at {output_path}."
+        )
+        return messages
+
+    try:
+        payload = reload_and_validate_metrics_artifact(
+            output_path,
+            expected_route_name=route_name,
+        )
+    except Exception as exc:
+        messages.append(
+            f"[METRICS][WARN] route={route_name} existing metrics artifact failed validation: {exc}"
+        )
+        return messages
+
+    artifact_sources = _artifact_source_files_from_payload(payload)
+    current_sources = sorted(str(path) for path in current_bundle_paths)
+
+    metrics_mtime = output_path.stat().st_mtime
+    newest_source_mtime = max((path.stat().st_mtime for path in current_bundle_paths), default=None)
+
+    if newest_source_mtime is not None and metrics_mtime < newest_source_mtime:
+        messages.append(
+            f"[METRICS][WARN] route={route_name} existing metrics artifact is older than the newest eligible embedding bundle."
+        )
+
+    if set(artifact_sources) != set(current_sources):
+        messages.append(
+            f"[METRICS][WARN] route={route_name} source embedding set mismatch: artifact={len(artifact_sources)} current={len(current_sources)}."
+        )
+
+    if not messages:
+        messages.append(
+            f"[METRICS][FRESH] route={route_name} existing metrics artifact matches the current eligible embedding bundle set."
+        )
+
+    return messages
+
+
+def process_route_metrics(
+    route_name: str,
+    manifest_rows: list[dict[str, str]],
+    *,
+    allow_subset_overwrite: bool = False,
+) -> Path:
+    for message in _freshness_messages(route_name, manifest_rows):
+        print(message)
+
+    from config import EMBEDDINGS_DIR
+
+    route_bundle_root = (EMBEDDINGS_DIR / route_name).resolve()
+    on_disk_doc_ids = {p.stem for p in route_bundle_root.rglob("*.npz")} if route_bundle_root.exists() else set()
+    manifest_doc_ids = {_row_doc_id(row) for row in manifest_rows if _row_doc_id(row)}
+
+    if on_disk_doc_ids and manifest_doc_ids and manifest_doc_ids < on_disk_doc_ids and not allow_subset_overwrite:
+        missing_count = len(on_disk_doc_ids - manifest_doc_ids)
+        raise RuntimeError(
+            f"Refusing to overwrite canonical metrics for {route_name}: "
+            f"manifest_rows covers only {len(manifest_doc_ids)} doc_ids but "
+            f"{len(on_disk_doc_ids)} embedding bundles exist on disk "
+            f"(missing {missing_count}). "
+            f"Use a full-route row set or pass allow_subset_overwrite=True intentionally."
+        )
+
+    return _ORIGINAL_PROCESS_ROUTE_METRICS(route_name, manifest_rows)
+
+
+# === Phase 05 eligibility compatibility override ===
+
+def _is_metric_eligible(manifest_row: Any) -> bool:
+    """
+    Compatibility rule for legacy manifest states.
+
+    A row is Phase 05-eligible when:
+    - it has a route
+    - structured export succeeded
+    - and either:
+        * embedding_status == success
+        * or the expected embedding bundle exists on disk
+
+    This preserves eligibility for historical rows whose embedding bundles
+    were created successfully but whose manifest embedding_status was never
+    backfilled from older orchestration logic.
+    """
+    route_name = _row_route(manifest_row)
+    if not route_name:
+        return False
+
+    structured_status = _row_get(manifest_row, "structured_status").strip().lower()
+    if structured_status != "success":
+        return False
+
+    embedding_status = _row_get(manifest_row, "embedding_status").strip().lower()
+
+    try:
+        bundle_path = _resolve_embedding_bundle_path_from_manifest_row(manifest_row)
+    except Exception:
+        return embedding_status == "success"
+
+    return embedding_status == "success" or bundle_path.exists()

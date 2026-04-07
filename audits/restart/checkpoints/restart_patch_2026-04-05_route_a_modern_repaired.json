@@ -1,0 +1,52 @@
+{
+  "exact_moment_truth": {
+    "completed_lanes_append": [
+      "Route_A_Modern canonical metrics artifact rebuilt from the full 1627-article embedding set",
+      "Route_A_Modern epoch counts repaired to [170, 208, 299, 429, 364, 157]",
+      "Modern-dependent Track B outputs regenerated from repaired Route_A metrics",
+      "Unified SPSS export package rebuilt after Route_A repair",
+      "Flat analyst file rebuilt after Route_A repair",
+      "Route_A_Modern 2025-2029 terminal epoch explicitly marked canonical and final by project policy"
+    ],
+    "active_blocker_reinforced": {
+      "name": "None",
+      "status": "resolved",
+      "count": 0,
+      "type": "none",
+      "details": "Route_A modern coverage defect resolved at the canonical metrics-artifact layer; downstream exports regenerated."
+    },
+    "route_a_modern_repair_state": {
+      "status": "resolved",
+      "source_embedding_file_count": 1627,
+      "epoch_counts": [170, 208, 299, 429, 364, 157],
+      "terminal_epoch_policy": "Route_A_Modern 2025-2029 is canonical and final with 157 articles."
+    }
+  },
+  "authoritative_next_execution_order": [
+    "Harden Phase 05 / metrics guardrails so subset route rebuilds cannot overwrite canonical full-route artifacts",
+    "Normalize manifest state against on-disk artifacts where needed",
+    "Recheck bridge and cross-route coherence using the rebuilt exports",
+    "Proceed with post-Phase 6 manuscript work using the repaired modern route and the Track A ARTIFACT determination"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-05",
+      "event": "route_a_modern_metrics_repaired",
+      "details": {
+        "source_embedding_file_count": 1627,
+        "epoch_counts": [170, 208, 299, 429, 364, 157],
+        "downstream_regenerated": [
+          "analysis_outputs/inferential/phase6_pett_breakpoints.csv",
+          "analysis_outputs/inferential/phase6_pett_secondary_tests.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_article_level_manifest.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_epoch_level_metrics.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_velocity_level_metrics.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_route_summaries.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_phase6_results.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_flat_analyst_file.csv",
+          "analysis_outputs/export_packages/full_corpus_spss/full_corpus_epoch_policy_notes.csv"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "exact_moment_truth": {
+    "active_blocker_reinforced": {
+      "name": "Route_B_Legacy_residual_artifact_subgroups",
+      "status": "bounded_residual",
+      "count": 3,
+      "type": "legacy_residuals",
+      "details": "Legacy corrective lane materially improved the artifact surface. Remaining residuals are now narrow and typed: one hard collapse/layout case, one likely genre-mismatch case, and a very small methods/results boundary-noise subgroup."
+    },
+    "legacy_correction_state": {
+      "status": "positive_result_freeze_point",
+      "best_current_audit_window_section_not_found_rate": 0.2359,
+      "decision": "Freeze current corrective code state; do not continue broad patching in this lane.",
+      "residual_subgroups": {
+        "hard_total_collapse_cases": 1,
+        "likely_genre_mismatch_cases": 1,
+        "boundary_noise_cases_sampled": 3
+      }
+    },
+    "completed_lanes_append": [
+      "Second-stage legacy methods-recovery patch materially improved the Route_B OCR artifact surface",
+      "Boundary-quality audit completed and showed the residual methods subgroup is now small and heterogeneous",
+      "Legacy corrective lane frozen at a disciplined stopping point for export regeneration"
+    ]
+  },
+  "authoritative_next_execution_order": [
+    "Regenerate export package and flat analyst file from the corrected Route_B metrics and Phase 6 outputs",
+    "Review regenerated route summaries, epoch metrics, and flat analyst file headers",
+    "Prepare clean checkpointed state for later commit/push review",
+    "Keep residual hard-collapse and genre-mismatch cases documented as bounded limitations"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-07",
+      "event": "legacy_positive_result_freeze_checkpoint",
+      "details": {
+        "audit_window_section_not_found_rate": 0.2359,
+        "residual_subgroups": {
+          "hard_total_collapse_cases": 1,
+          "likely_genre_mismatch_cases": 1,
+          "boundary_noise_cases_sampled": 3
+        },
+        "decision": "freeze_current_legacy_corrective_state"
+      }
+    }
+  ]
+}

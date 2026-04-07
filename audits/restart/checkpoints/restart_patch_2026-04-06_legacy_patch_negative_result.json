@@ -1,0 +1,63 @@
+{
+  "exact_moment_truth": {
+    "active_blocker_reinforced": {
+      "name": "Route_B_Legacy_era_3_section_localization_failure",
+      "status": "active",
+      "count": 1,
+      "type": "legacy_corrective_lane",
+      "details": "First era_3 corrective patch was operationally successful but produced no material improvement in the 1985-1994 OCR artifact surface. Legacy issue remains unresolved."
+    },
+    "legacy_correction_state": {
+      "status": "first_patch_negative_result",
+      "first_fixpoint": "bins/s02_processor/segmenter.py::_segment_era_3",
+      "first_experiment": [
+        "widened legacy header lexicon",
+        "early-document intro fallback"
+      ],
+      "rerun_scope": [
+        "Route_B_Legacy 1975-1984 control window",
+        "Route_B_Legacy 1985-1994 audit window"
+      ],
+      "operational_result": {
+        "structured_ok": 583,
+        "structured_fail": 0,
+        "embed_ok": 583,
+        "embed_fail": 0,
+        "route_b_full_rows": 961
+      },
+      "evaluation_result": {
+        "material_improvement": false,
+        "audit_section_not_found_rate": 0.9223,
+        "track_a_determination": "ARTIFACT"
+      },
+      "decision": "Checkpoint negative-result experiment and move to stronger second-stage corrective hypothesis."
+    },
+    "completed_lanes_append": [
+      "Legacy era_3 first corrective experiment executed and evaluated",
+      "Targeted Route_B_Legacy rerun for 1975-1994 completed successfully with no operational failures",
+      "Negative-result checkpoint recorded for the first legacy corrective patch"
+    ]
+  },
+  "authoritative_next_execution_order": [
+    "Design second-stage legacy corrective hypothesis beyond header-lexicon widening",
+    "Localize whether layout-aware OCR preprocessing or stronger header-hunting is the next best patch",
+    "Run the next targeted legacy correction experiment for 1975-1994",
+    "Rebuild Route_B metrics and rerun Track A / Track B after the second-stage patch",
+    "Do not push to GitHub until the legacy lane is either corrected or explicitly frozen as diagnostic-only"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-06",
+      "event": "legacy_first_patch_negative_result",
+      "details": {
+        "fixpoint": "bins/s02_processor/segmenter.py::_segment_era_3",
+        "structured_ok": 583,
+        "structured_fail": 0,
+        "embed_ok": 583,
+        "embed_fail": 0,
+        "audit_section_not_found_rate": 0.9223,
+        "track_a_determination": "ARTIFACT"
+      }
+    }
+  ]
+}

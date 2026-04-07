@@ -1,0 +1,38 @@
+{
+  "exact_moment_truth": {
+    "active_blocker_reinforced": {
+      "name": "Route_B_Legacy_era_3_section_localization_failure",
+      "status": "active",
+      "count": 1,
+      "type": "legacy_corrective_lane",
+      "details": "1985-1994 Route_B_Legacy defect is concentrated in ocr + era_3 with A_intro/A_methods collapse and A_results often preserved. Corrective target is legacy era_3 section recovery, beginning with fuzzy header matching and early-document header hunting."
+    },
+    "legacy_correction_state": {
+      "status": "started",
+      "working_hypothesis": "Legacy era_3 parser is too rigid for legacy APA-style topical Level 1 headings.",
+      "first_fixpoint": "bins/s02_processor/segmenter.py::_segment_era_3",
+      "first_experiment": [
+        "fuzzy legacy header matching",
+        "early-document header hunting"
+      ]
+    }
+  },
+  "authoritative_next_execution_order": [
+    "Inspect bins/s02_processor/segmenter.py and localize _segment_era_3 heading logic",
+    "Patch legacy era_3 section normalization with fuzzy header matching and early-document anchor hunting",
+    "Rerun targeted legacy correction window for 1975-1994",
+    "Rebuild legacy-sensitive metrics and Phase 6 outputs",
+    "Evaluate whether the correction materially reduces the OCR artifact surface"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-06",
+      "event": "legacy_correction_lane_started",
+      "details": {
+        "fixpoint": "bins/s02_processor/segmenter.py::_segment_era_3",
+        "evidence": "ocr + era_3 clustering with intro/methods loss and results preservation",
+        "first_experiment": "fuzzy legacy header matching plus early-document header hunting"
+      }
+    }
+  ]
+}

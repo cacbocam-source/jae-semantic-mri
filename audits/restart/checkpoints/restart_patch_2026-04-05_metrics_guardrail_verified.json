@@ -1,0 +1,39 @@
+{
+  "exact_moment_truth": {
+    "completed_lanes_append": [
+      "Phase 05 / metrics subset-overwrite guardrail implemented in bins/s03_analysis/metrics.py",
+      "Subset overwrite attempt for Route_A_Modern verified to fail explicitly when only 16 rows are supplied against 1627 on-disk embedding bundles",
+      "Full-route Route_A_Modern rebuild verified to succeed after guardrail patch",
+      "Canonical Route_A_Modern metrics artifact remains at 1627 source embedding files after guardrail verification"
+    ],
+    "metrics_guardrail_state": {
+      "status": "implemented_and_verified",
+      "file": "bins/s03_analysis/metrics.py",
+      "guardrail_behavior": "Refuses canonical route metrics overwrite when manifest_rows cover only a subset of on-disk embedding bundles unless allow_subset_overwrite=True is passed intentionally.",
+      "verified_on_route": "Route_A_Modern",
+      "subset_test_rows": 16,
+      "full_route_rows": 1627,
+      "post_verification_source_embedding_file_count": 1627
+    }
+  },
+  "authoritative_next_execution_order": [
+    "Regenerate downstream artifacts from the guardrail-backed canonical metrics state",
+    "Normalize manifest state against on-disk artifacts where needed",
+    "Recheck bridge and cross-route coherence using the rebuilt exports",
+    "Prepare a clean commit/push for the repaired and hardened pipeline state",
+    "Proceed with post-Phase 6 manuscript work using the repaired modern route and the Track A ARTIFACT determination"
+  ],
+  "checkpoint_events_append": [
+    {
+      "date": "2026-04-05",
+      "event": "metrics_subset_overwrite_guardrail_verified",
+      "details": {
+        "file": "bins/s03_analysis/metrics.py",
+        "route_name": "Route_A_Modern",
+        "subset_rows_blocked": 16,
+        "full_route_rows_allowed": 1627,
+        "post_verification_epoch_counts": [170, 208, 299, 429, 364, 157]
+      }
+    }
+  ]
+}

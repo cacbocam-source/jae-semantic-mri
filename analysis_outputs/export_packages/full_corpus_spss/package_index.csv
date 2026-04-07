@@ -1,0 +1,8 @@
+dataset_name,path,row_count,description
+full_corpus_article_level_manifest,analysis_outputs/export_packages/full_corpus_spss/full_corpus_article_level_manifest.csv,2588,Full-corpus article-level manifest with route/status derivations for SPSS.
+full_corpus_epoch_level_metrics,analysis_outputs/export_packages/full_corpus_spss/full_corpus_epoch_level_metrics.csv,14,Unified epoch-level core semantic metrics across Route_A_Modern and Route_B_Legacy.
+full_corpus_velocity_level_metrics,analysis_outputs/export_packages/full_corpus_spss/full_corpus_velocity_level_metrics.csv,12,Unified innovation-velocity records across Route_A_Modern and Route_B_Legacy.
+full_corpus_route_summaries,analysis_outputs/export_packages/full_corpus_spss/full_corpus_route_summaries.csv,2,Route-level summaries from the loaders/report layer.
+full_corpus_bridge_transition,analysis_outputs/export_packages/full_corpus_spss/full_corpus_bridge_transition.csv,1,Bridge transition table copied from analysis_outputs/tables if present.
+full_corpus_phase6_results,analysis_outputs/export_packages/full_corpus_spss/full_corpus_phase6_results.csv,401,Unified Phase 6 Track A + Track B inferential outputs.
+full_corpus_flat_analyst_file,analysis_outputs/export_packages/full_corpus_spss/full_corpus_flat_analyst_file.csv,2588,"One-row-per-article SPSS-ready flat analyst file merging manifest, epoch metrics, route summaries, and Phase 6 flags/results."

@@ -13,11 +13,26 @@ from bins.s04_utils.artifacts import (
 from bins.s04_utils.year_resolution import resolve_year
 
 
+def _route_a_prefixed_year(path: Path) -> int | None:
+    stem = path.stem
+    if len(stem) >= 4 and stem[:4].isdigit():
+        return int(stem[:4])
+    return None
+
+
+def _resolve_section_year(path: Path) -> int:
+    if infer_route(path) == "Route_A_Modern":
+        prefixed_year = _route_a_prefixed_year(path)
+        if prefixed_year is not None:
+            return prefixed_year
+    return resolve_year(path)
+
+
 def build_section_export(pdf_path: str | Path) -> StructuredSectionArtifact:
     path = Path(pdf_path).expanduser().resolve()
 
     extraction = smart_extract_pdf(path)
-    year = resolve_year(path)
+    year = _resolve_section_year(path)
 
     segmenter = UniversalSegmenter(extraction.clean_text, year)
     segmentation = segmenter.get_result()
