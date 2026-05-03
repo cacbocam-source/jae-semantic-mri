@@ -1,0 +1,2 @@
+left_route,right_route,corpus_name,left_epoch,right_epoch,transition,left_n,right_n,bridge_velocity
+Route_B_Legacy,Route_A_Modern,JAE_Legacy_Audit,1995-1999,2000-2004,1995-1999 -> 2000-2004,158,168,0.010808888726314914
