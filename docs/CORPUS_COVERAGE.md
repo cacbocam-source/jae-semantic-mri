@@ -1,6 +1,6 @@
 # Corpus Coverage Status
 
-- generated_at_utc: `2026-05-22T13:47:31.521242+00:00`
+- generated_at_utc: `2026-05-22T13:53:17.609438+00:00`
 - covered_year_count: `9`
 - missing_year_count: `18`
 
