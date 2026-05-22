@@ -1,6 +1,6 @@
 # Pipeline Audit and Validation Record
 
-- generated_at_utc: `2026-05-22T13:58:45.110592+00:00`
+- generated_at_utc: `2026-05-22T14:01:29.671319+00:00`
 - project: `JAE_Legacy_Audit`
 - system: `Semantic MRI Pipeline`
 
