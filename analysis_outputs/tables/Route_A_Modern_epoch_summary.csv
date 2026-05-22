@@ -1,7 +1,2 @@
 route_name,corpus_name,epoch,count,semantic_dispersion
-Route_A_Modern,JAE_Legacy_Audit,2000-2004,168,0.10159357637166977
-Route_A_Modern,JAE_Legacy_Audit,2005-2009,205,0.09526617079973221
-Route_A_Modern,JAE_Legacy_Audit,2010-2014,297,0.0788235068321228
-Route_A_Modern,JAE_Legacy_Audit,2015-2019,421,0.07277126610279083
-Route_A_Modern,JAE_Legacy_Audit,2020-2024,363,0.0726449191570282
-Route_A_Modern,JAE_Legacy_Audit,2025-2029,157,0.06697557121515274
+Route_A_Modern,JAE_Legacy_Audit,2025-2029,30,0.1259285807609558

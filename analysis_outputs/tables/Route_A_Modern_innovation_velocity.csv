@@ -1,6 +1,1 @@
 route_name,corpus_name,transition,velocity
-Route_A_Modern,JAE_Legacy_Audit,2000-2004 -> 2005-2009,0.002676144940778613
-Route_A_Modern,JAE_Legacy_Audit,2005-2009 -> 2010-2014,0.0031340541318058968
-Route_A_Modern,JAE_Legacy_Audit,2010-2014 -> 2015-2019,0.004726989660412073
-Route_A_Modern,JAE_Legacy_Audit,2015-2019 -> 2020-2024,0.0015120197786018252
-Route_A_Modern,JAE_Legacy_Audit,2020-2024 -> 2025-2029,0.0016527179395779967

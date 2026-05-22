@@ -1,5 +1,75 @@
 from __future__ import annotations
 
+# --- BEGIN HEADING NORMALIZATION PATCH ---
+def _normalize_heading(h: str) -> str:
+    return (h or "").strip().lower()
+
+SECTION_ALIASES = {
+    "introduction": [
+        "introduction", "conceptual framework", "background"
+    ],
+    "methods": [
+        "methods", "methods and procedures", "methodology", "procedures"
+    ],
+    "results": [
+        "results", "findings"
+    ],
+    "discussion": [
+        "discussion",
+        "conclusions, discussion, and recommendations",
+        "conclusions and recommendations",
+        "conclusions"
+    ],
+    "purpose": [
+        "purpose", "purpose and objective", "objectives"
+    ],
+    "problem": [
+        "statement of the problem", "problem statement"
+    ],
+}
+
+def _match_section(label: str, heading: str) -> bool:
+    h = _normalize_heading(heading)
+    for alias in SECTION_ALIASES.get(label, []):
+        if alias in h:
+            return True
+    return False
+# --- END HEADING NORMALIZATION PATCH ---
+# --- BEGIN HEADING NORMALIZATION PATCH ---
+def _normalize_heading(h: str) -> str:
+    return (h or "").strip().lower()
+
+SECTION_ALIASES = {
+    "introduction": [
+        "introduction", "conceptual framework", "background"
+    ],
+    "methods": [
+        "methods", "methods and procedures", "methodology", "procedures"
+    ],
+    "results": [
+        "results", "findings"
+    ],
+    "discussion": [
+        "discussion",
+        "conclusions, discussion, and recommendations",
+        "conclusions and recommendations",
+        "conclusions"
+    ],
+    "purpose": [
+        "purpose", "purpose and objective", "objectives"
+    ],
+    "problem": [
+        "statement of the problem", "problem statement"
+    ],
+}
+
+def _match_section(label: str, heading: str) -> bool:
+    h = _normalize_heading(heading)
+    for alias in SECTION_ALIASES.get(label, []):
+        if alias in h:
+            return True
+    return False
+# --- END HEADING NORMALIZATION PATCH ---
 from pathlib import Path
 
 from config import RAW_DIR, STRUCTURED_DIR
@@ -21,11 +91,28 @@ def _route_a_prefixed_year(path: Path) -> int | None:
 
 
 def _resolve_section_year(path: Path) -> int:
-    if infer_route(path) == "Route_A_Modern":
-        prefixed_year = _route_a_prefixed_year(path)
-        if prefixed_year is not None:
-            return prefixed_year
-    return resolve_year(path)
+    """
+    Resolve year for section export.
+
+    Route_A_Modern rule:
+    → Trust the leading 4-digit prefix in filename
+
+    Fallback:
+    → Use existing resolver only if prefix missing
+    """
+    name = path.name
+
+    # --- FIX: Route_A prefix-year authority ---
+    try:
+        prefix = name.split("_", 1)[0]
+        if prefix.isdigit() and len(prefix) == 4:
+            return int(prefix)
+    except Exception:
+        pass
+
+    # --- fallback to existing logic ---
+    from bins.s04_utils.year_resolution import resolve_year_from_filename
+    return resolve_year_from_filename(name)
 
 
 def build_section_export(pdf_path: str | Path) -> StructuredSectionArtifact:

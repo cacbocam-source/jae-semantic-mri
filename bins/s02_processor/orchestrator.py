@@ -11,23 +11,29 @@ def _safe_infer_year(path: Path) -> int:
     Robust year inference supporting:
     1. Folder-based legacy: .../<YEAR>/<file>.pdf
     2. Filename-based modern: .../2026.pdf
+    3. Prefixed filename: .../2005_<anything>.pdf
 
     Returns:
-        int year OR -1 if not resolvable (e.g., Vol1_1.pdf)
+        int year OR -1 if not resolvable
     """
     # Case 1 — folder-based
     for part in path.parts:
         if part.isdigit() and len(part) == 4:
             return int(part)
 
-    # Case 2 — filename-based
+    # Case 2 & 3 — filename-based
     stem = path.stem
+
+    # Exact year filename: 2026.pdf
     if stem.isdigit() and len(stem) == 4:
         return int(stem)
 
-    # Case 3 — unresolved
-    return -1
+    # Prefixed modern filename: 2026_3023.pdf
+    prefix = stem.split("_", 1)[0]
+    if prefix.isdigit() and len(prefix) == 4:
+        return int(prefix)
 
+    return -1
 
 def process_single_pdf(pdf_path: Path) -> None:
     """
