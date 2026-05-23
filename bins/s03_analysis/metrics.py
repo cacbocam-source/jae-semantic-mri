@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -712,8 +714,44 @@ def process_route_metrics(
     return output_path
 
 
+
+def _get_metric_eligible_records_local() -> list[dict[str, str]]:
+    manifest_path = Path("data/manifests/pipeline_manifest.csv")
+    embed_dir = Path("data/embeddings/Route_A_Modern")
+    embedding_doc_ids = {p.stem for p in embed_dir.rglob("*.npz")} if embed_dir.exists() else set()
+
+    def norm(v: object) -> str:
+        return str(v or "").strip().lower()
+
+    with manifest_path.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    eligible = []
+    for row in rows:
+        if norm(row.get("route")) != "route_a_modern":
+            continue
+
+        year = str(row.get("year", "")).strip()
+        doc_id = str(row.get("doc_id", "")).strip()
+
+        if not (year.isdigit() and len(year) == 4):
+            continue
+        if norm(row.get("extract_status")) != "success":
+            continue
+        if norm(row.get("structured_status")) != "success":
+            continue
+        if norm(row.get("embedding_status")) != "success":
+            continue
+        if not doc_id or doc_id not in embedding_doc_ids:
+            continue
+
+        eligible.append(row)
+
+    return eligible
+
+
 def run_phase5_metrics() -> None:
-    eligible_rows = get_metric_eligible_records()
+    eligible_rows = get_metric_eligible_records() or _get_metric_eligible_records_local()
     if not eligible_rows:
         print("No Phase 5-eligible manifest rows found.")
         return
