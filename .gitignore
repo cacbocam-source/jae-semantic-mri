@@ -21,3 +21,11 @@ __pycache__/
 
 # OS
 .DS_Store
+# local cleanup noise
+scripts/*.bak_*
+scripts/*.pre_scope_fix_*.bak
+bins/**/*.bak_fix_*
+analysis_outputs/model_exports/
+analysis_outputs/spss/
+analysis_outputs/figures/
+analysis_outputs/export_packages/full_corpus_spss/figures/
